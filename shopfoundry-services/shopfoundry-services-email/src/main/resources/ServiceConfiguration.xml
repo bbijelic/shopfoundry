@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- Certificate manager -->
+	<bean id="CertificateManager" class="org.shopfoundry.core.security.certificates.DefaultCertificateManager" />
+
+	<!-- Security manager -->
+	<bean id="SecurityManager" class="org.shopfoundry.core.security.DefaultSecurityManager">
+		<!-- Certificate Manager -->
+		<property name="certificateManager" ref="CertificateManager" />
+	</bean>
+
+	<!-- System specification -->
+	<bean id="SystemSpecification"
+		class="org.shopfoundry.core.service.system.DefaultSystemSpecification" />
+
+	<!-- Service context -->
+	<bean id="ServiceContext" class="org.shopfoundry.core.service.DefaultServiceContext">
+		<!-- Service group -->
+		<property name="serviceGroup" value="EmailDispatcher" />
+		<!-- Registry service endpoint -->
+		<property name="registryServiceEndpoint" value="https://192.168.1.2:8443/register" />
+		<!-- System specification -->
+		<property name="systemSpecification" ref="SystemSpecification" />
+		<!-- Security manager -->
+		<property name="securityManager" ref="SecurityManager" />
+	</bean>
+	
+	<!-- Service states -->
+	<!-- Starting state -->
+	<bean id="StartingState" class="org.shopfoundry.core.service.fsm.state.StartingState" />
+	
+	<!-- Service state machine -->
+	<bean id="ServiceStateMachine" class="org.shopfoundry.core.service.fsm.DefaultServiceStateMachine">
+		<!-- Service context -->
+		<property name="serviceContext" ref="ServiceContext" />
+		<!-- Default state -->
+		<property name="defaultState" ref="StartingState" />
+	</bean>
+
+	<!-- Email dispatcher service -->
+	<bean id="Service" class="org.shopfoundry.services.email.EmailDispatcherService">
+		<!-- Service context -->
+		<property name="serviceContext" ref="ServiceContext" />
+		<!-- Service state machine -->
+		<property name="serviceStateMachine" ref="ServiceStateMachine" />
+	</bean>
+
+</beans>

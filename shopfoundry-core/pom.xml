@@ -1,0 +1,22 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>shopfoundry.org</groupId>
+		<artifactId>shopfoundry</artifactId>
+		<version>0.0.1</version>
+	</parent>
+	<artifactId>shopfoundry-core</artifactId>
+	<packaging>pom</packaging>
+
+	<name>ShopFoundry / Core</name>
+	<description>Online marketplace platform core package</description>
+
+	<modules>
+		<module>shopfoundry-core-admin</module>
+		<module>shopfoundry-core-db</module>
+		<module>shopfoundry-core-service</module>
+		<module>shopfoundry-core-utils</module>
+		<module>shopfoundry-core-security</module>
+	</modules>
+</project>

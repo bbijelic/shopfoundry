@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- System specification -->
+	<bean id="SystemSpecification"
+		class="org.shopfoundry.core.service.system.DefaultSystemSpecification" />
+
+	<!-- GUID provider -->
+	<bean id="GUIDProvider" class="org.shopfoundry.core.utils.DefaultGuidProvider" />
+
+	<!-- HTTP Configuration -->
+	<bean id="HttpConfiguration" class="org.eclipse.jetty.server.HttpConfiguration">
+		<property name="secureScheme" value="https" />
+		<property name="securePort" value="9443" />
+		<property name="outputBufferSize" value="32768" />
+		<property name="customizers">
+			<list>
+				<bean name="SecureRequestCustomizer" class="org.eclipse.jetty.server.SecureRequestCustomizer" />
+			</list>
+		</property>
+	</bean>
+
+	<!-- HTTP Configuration factory -->
+	<bean id="HttpConnectionFactory" class="org.eclipse.jetty.server.HttpConnectionFactory">
+		<constructor-arg ref="HttpConfiguration" />
+	</bean>
+
+	<!-- HTTP server -->
+	<bean id="HttpServer" class="org.eclipse.jetty.server.Server" />
+
+	<!-- Root CA certificate file path -->
+	<bean id="RootCaCertificateFilePath" class="java.lang.String">
+		<constructor-arg value="resources/shopfoundry-root-ca.crt" />
+	</bean>
+
+	<!-- Root CA certificate key file path -->
+	<bean id="RootCaCertificateKeyFilePath" class="java.lang.String">
+		<constructor-arg value="resources/shopfoundry-root-ca.key" />
+	</bean>
+	
+	<!-- Intermediate CA certificate file path -->
+	<bean id="IntermediateCaCertificateFilePath" class="java.lang.String">
+		<constructor-arg value="resources/shopfoundry-intermediate-ca.crt" />
+	</bean>
+
+	<!-- Intermediate CA certificate key file path -->
+	<bean id="IntermediateCaCertificateKeyFilePath" class="java.lang.String">
+		<constructor-arg value="resources/shopfoundry-intermediate-ca.key" />
+	</bean>
+
+	<!-- HTTP Server context -->
+	<bean id="HttpServerContext"
+		class="org.shopfoundry.core.service.gateway.http.DefaultHttpServerContext">
+		<!-- Connectors -->
+		<property name="connectors">
+			<list>
+				<!-- HTTP Connector -->
+				<bean id="HttpConnector" class="org.eclipse.jetty.server.ServerConnector">
+					<constructor-arg ref="HttpServer" />
+					<constructor-arg ref="HttpConnectionFactory" />
+					<property name="port" value="9080" />
+					<property name="idleTimeout" value="30000" />
+				</bean>
+			</list>
+		</property>
+
+		<!-- Servlet mappings -->
+		<property name="servletMapping">
+			<map>
+				<!-- Repository servlet for obtaining CA certificate -->
+				<entry key="/pki/repository/ca">
+					<bean class="org.shopfoundry.services.pki.ca.servlet.RepositoryServlet">
+						<constructor-arg ref="RootCaCertificateFilePath" />
+						<constructor-arg ref="RootCaCertificateKeyFilePath" />
+						<constructor-arg ref="IntermediateCaCertificateFilePath" />
+						<constructor-arg ref="IntermediateCaCertificateKeyFilePath" />
+					</bean>
+				</entry>
+				<!-- Certificate request signign (CSR) servlet -->
+				<entry key="/pki/csr">
+					<bean
+						class="org.shopfoundry.services.pki.ca.servlet.CertificateRequestSigningServlet">
+						<constructor-arg ref="RootCaCertificateFilePath" />
+						<constructor-arg ref="RootCaCertificateKeyFilePath" />
+						<constructor-arg ref="IntermediateCaCertificateFilePath" />
+						<constructor-arg ref="IntermediateCaCertificateKeyFilePath" />
+					</bean>
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<!-- HTTP Inbound Gateway -->
+	<bean id="HttpInboundGateway"
+		class="org.shopfoundry.core.service.gateway.http.DefaultHttpInboundGateway">
+		<!-- HTTP server -->
+		<property name="httpServer" ref="HttpServer" />
+		<!-- HTTP inbound gateway context -->
+		<property name="httpServerContext" ref="HttpServerContext" />
+	</bean>
+
+	<!-- Service -->
+	<bean id="Service" class="org.shopfoundry.services.pki.ca.CAService">
+		<!-- Service context -->
+		<constructor-arg ref="HttpInboundGateway" />
+	</bean>
+
+</beans>

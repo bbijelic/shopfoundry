@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<!-- System specification -->
+	<bean id="SystemSpecification"
+		class="org.shopfoundry.core.service.system.DefaultSystemSpecification" />
+
+	<!-- GUID provider -->
+	<bean id="GUIDProvider" class="org.shopfoundry.core.utils.DefaultGuidProvider" />
+	
+	<!-- HTTPS Configuration -->
+	<bean id="HttpsConfiguration" class="org.eclipse.jetty.server.HttpConfiguration">
+		<property name="secureScheme" value="https" />
+		<property name="securePort" value="8443" />
+		<property name="outputBufferSize" value="32768" />
+		<property name="customizers">
+			<list>
+				<bean name="SecureRequestCustomizer" class="org.eclipse.jetty.server.SecureRequestCustomizer" />
+			</list>
+		</property>
+	</bean>
+	
+	<!-- HTTPS Connection factory -->
+	<bean id="HttpsConnectionFactory" class="org.eclipse.jetty.server.HttpConnectionFactory">
+		<constructor-arg ref="HttpsConfiguration" />
+	</bean>
+	
+	<!-- HTTP server -->
+	<bean id="HttpServer" class="org.eclipse.jetty.server.Server" />
+	
+	<!-- SSL Context factory -->
+	<bean id="SSLContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
+		<!-- <property name="keyStorePath" value="resources/keystore.jks" /> -->
+		<!-- <property name="keyStorePassword" value="shopfoundry" /> -->
+		<!-- <property name="keyManagerPassword" value="shopfoundry" /> -->
+	</bean>
+	
+	<!-- SSL Connection factory -->
+	<bean id="SSLConnectionFactory" class="org.eclipse.jetty.server.SslConnectionFactory">
+		<constructor-arg ref="SSLContextFactory" />
+		<constructor-arg type="java.lang.String" value="HTTP/1.1" />
+	</bean>
+
+	<!-- HTTP Server context -->
+	<bean id="HttpServerContext" class="org.shopfoundry.core.service.gateway.http.DefaultHttpServerContext">
+		<!-- Connectors -->
+		<property name="connectors">
+			<list>				
+				<!-- HTTPS Connector -->
+				<bean id="HttpsConnector" class="org.shopfoundry.core.service.jetty.HttpsServerConnector">
+					<constructor-arg ref="HttpServer" />
+					<constructor-arg ref="SSLConnectionFactory" />
+					<constructor-arg ref="HttpsConnectionFactory" />
+					
+					<property name="port" value="8443" />
+					<property name="idleTimeout" value="30000" />
+				</bean>
+			</list>
+		</property>
+		
+		<!-- Servlet mappings -->
+		<property name="servletMapping">
+			<map>
+				<entry key="/register">
+					<bean class="org.shopfoundry.services.registry.servlet.RegistrationServlet" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+	
+	<!-- HTTP Inbound Gateway  -->
+	<bean id="HttpInboundGateway" class="org.shopfoundry.core.service.gateway.http.DefaultHttpInboundGateway">
+		<!-- HTTP server  -->
+		<property name="httpServer" ref="HttpServer" />
+		<!-- HTTP inbound gateway context -->
+		<property name="httpServerContext" ref="HttpServerContext" />
+	</bean>
+
+	<!-- Registry service -->
+	<bean id="Service" class="org.shopfoundry.services.registry.RegistryService">
+		<!-- Service context -->
+		<constructor-arg ref="HttpInboundGateway" />
+	</bean>
+
+</beans>
