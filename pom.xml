@@ -11,7 +11,7 @@
 	<description>Online Marketplace Platform</description>
 
 	<properties>
-		<jdk.version>1.8</jdk.version>
+		<jdk.version>1.7</jdk.version>
 	</properties>
 
 	<build>
