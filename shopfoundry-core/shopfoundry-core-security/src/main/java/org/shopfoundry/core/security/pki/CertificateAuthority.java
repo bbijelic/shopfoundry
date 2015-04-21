@@ -96,10 +96,10 @@ public class CertificateAuthority {
 	/**
 	 * CA Certificate
 	 */
-	private X509Certificate caCerticicate;
+	private X509Certificate caCertificate;
 
 	public X509Certificate getCACertificate() {
-		return caCerticicate;
+		return caCertificate;
 	}
 
 	/**
@@ -113,10 +113,9 @@ public class CertificateAuthority {
 	 * @return the certificate authority
 	 * @throws Exception
 	 */
-	public static CertificateAuthority getInstance(
-			String rootCaCertificateFile, String rootCaCertificateKeyFile,
-			String caCertificateFile, String caCertificateKeyFile)
-			throws Exception {
+	public static CertificateAuthority getInstance(File rootCaCertificateFile,
+			File rootCaCertificateKeyFile, File caCertificateFile,
+			File caCertificateKeyFile) throws Exception {
 
 		if (instance == null)
 			instance = new CertificateAuthority(rootCaCertificateFile,
@@ -135,9 +134,9 @@ public class CertificateAuthority {
 	 * @param caCertificateKeyFile
 	 * @throws Exception
 	 */
-	public CertificateAuthority(String rootCaCertificateFile,
-			String rootCaCertificateKeyFile, String caCertificateFile,
-			String caCertificateKeyFile) throws Exception {
+	public CertificateAuthority(File rootCaCertificateFile,
+			File rootCaCertificateKeyFile, File caCertificateFile,
+			File caCertificateKeyFile) throws Exception {
 
 		// Register security provider
 		registerBouncyCastleSecurityProvider();
@@ -147,28 +146,34 @@ public class CertificateAuthority {
 
 		// Load root CA certificate
 		InputStream rootCaCertificateInputStream = new FileInputStream(
-				new File(rootCaCertificateFile));
+				rootCaCertificateFile);
 		rootCACertificate = (X509Certificate) certificateFactory
 				.generateCertificate(rootCaCertificateInputStream);
 		// Verify integrity
 		rootCACertificate.verify(rootCACertificate.getPublicKey());
 
+		if (logger.isTraceEnabled())
+			logger.trace(rootCACertificate.getSubjectDN().toString());
+
 		// Load CA certificate
-		InputStream caCertificateInputStream = new FileInputStream(new File(
-				caCertificateFile));
-		caCerticicate = (X509Certificate) certificateFactory
+		InputStream caCertificateInputStream = new FileInputStream(
+				caCertificateFile);
+		caCertificate = (X509Certificate) certificateFactory
 				.generateCertificate(caCertificateInputStream);
 		// Verify integrity
-		caCerticicate.verify(caCerticicate.getPublicKey());
+		caCertificate.verify(rootCACertificate.getPublicKey());
+
+		if (logger.isTraceEnabled())
+			logger.trace(caCertificate.getSubjectDN().toString());
 
 		// Load private keys
 		// Load root CA private key
 		rootCACertificatePrivateKey = PrivateKeyLoader
-				.getPrivateKeyParameters(new File(rootCaCertificateKeyFile));
+				.getPrivateKeyParameters(rootCaCertificateKeyFile);
 
 		// Load CA private key
 		caCertificatePrivateKey = PrivateKeyLoader
-				.getPrivateKeyParameters(new File(caCertificateKeyFile));
+				.getPrivateKeyParameters(caCertificateKeyFile);
 	}
 
 	/**
@@ -201,11 +206,11 @@ public class CertificateAuthority {
 		V3TBSCertificateGenerator certGen = new V3TBSCertificateGenerator();
 		certGen.setSerialNumber(new DERInteger(BigInteger.valueOf(System
 				.currentTimeMillis())));
-		certGen.setIssuer(PrincipalUtil.getSubjectX509Principal(caCerticicate));
+		certGen.setIssuer(PrincipalUtil.getSubjectX509Principal(caCertificate));
 		certGen.setSubject(x509Name);
 
 		DERObjectIdentifier sigOID = (DERObjectIdentifier) X509Helper
-				.getAlgorithmOID("SHA1WithRSAEncryption");
+				.getAlgorithmOID(caCertificate.getSigAlgName());
 		AlgorithmIdentifier sigAlgId = new AlgorithmIdentifier(sigOID,
 				new DERNull());
 		certGen.setSignature(sigAlgId);
@@ -222,7 +227,7 @@ public class CertificateAuthority {
 		// Authority key identifier extension
 		X509Extension authorityKeyIndentifierExtension = new X509Extension(
 				false, new DEROctetString(new AuthorityKeyIdentifierStructure(
-						caCerticicate)));
+						caCertificate)));
 
 		// Subject key identifier
 		X509Extension subjectKeyIdentifier = new X509Extension(false,
@@ -267,7 +272,7 @@ public class CertificateAuthority {
 
 		X509CertificateObject clientCert = new X509CertificateObject(
 				new X509CertificateStructure(new DERSequence(v)));
-		clientCert.verify(caCerticicate.getPublicKey());
+		clientCert.verify(caCertificate.getPublicKey());
 
 		signedCertificate = clientCert;
 

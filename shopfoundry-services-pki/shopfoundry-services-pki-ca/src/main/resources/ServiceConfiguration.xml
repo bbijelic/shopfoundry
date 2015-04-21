@@ -13,8 +13,6 @@
 
 	<!-- HTTP Configuration -->
 	<bean id="HttpConfiguration" class="org.eclipse.jetty.server.HttpConfiguration">
-		<property name="secureScheme" value="https" />
-		<property name="securePort" value="9443" />
 		<property name="outputBufferSize" value="32768" />
 		<property name="customizers">
 			<list>
@@ -71,7 +69,7 @@
 		<property name="servletMapping">
 			<map>
 				<!-- Repository servlet for obtaining CA certificate -->
-				<entry key="/pki/repository/ca">
+				<entry key="/pki/repository/ca-chain">
 					<bean class="org.shopfoundry.services.pki.ca.servlet.RepositoryServlet">
 						<constructor-arg ref="RootCaCertificateFilePath" />
 						<constructor-arg ref="RootCaCertificateKeyFilePath" />
@@ -80,7 +78,7 @@
 					</bean>
 				</entry>
 				<!-- Certificate request signign (CSR) servlet -->
-				<entry key="/pki/csr">
+				<entry key="/pki/sign-csr">
 					<bean
 						class="org.shopfoundry.services.pki.ca.servlet.CertificateRequestSigningServlet">
 						<constructor-arg ref="RootCaCertificateFilePath" />

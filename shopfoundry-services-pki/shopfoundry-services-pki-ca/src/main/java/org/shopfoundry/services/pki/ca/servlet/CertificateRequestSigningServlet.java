@@ -1,5 +1,6 @@
 package org.shopfoundry.services.pki.ca.servlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -81,26 +82,60 @@ public class CertificateRequestSigningServlet extends HttpServlet {
 			// Request is valid
 
 			try {
-				// Get certificate authority
+				// Root CA certificate
+				File rootCaCertificateFile = new File(
+						this.rootCaCertificateFilePath);
+				// Root CA private key
+				File rootCaPrivateKeyFile = new File(
+						this.rootCaCertificateKeyFilePath);
+
+				// Intermediate CA certificate
+				File intermediateCaCertificateFile = new File(
+						this.intermediateCaCertificateFilePath);
+				// Intermediate CA private key
+				File intermediateCaPrivateKeyFile = new File(
+						this.intermediateCaCertificateKeyFilePath);
+
+				// Initialize certificate authority
 				CertificateAuthority ca = CertificateAuthority.getInstance(
-						rootCaCertificateFilePath,
-						rootCaCertificateKeyFilePath,
-						intermediateCaCertificateFilePath,
-						intermediateCaCertificateKeyFilePath);
+						rootCaCertificateFile, rootCaPrivateKeyFile,
+						intermediateCaCertificateFile,
+						intermediateCaPrivateKeyFile);
 
 				// CA Certificate
 				X509Principal principal = PrincipalUtil
 						.getSubjectX509Principal(ca.getCACertificate());
-				String caOrganization = (String) principal
-						.getValues(X509Name.O).get(0);
-				String caOrganizationalUnit = (String) principal.getValues(
-						X509Name.OU).get(0);
-				String caLocality = (String) principal.getValues(X509Name.L)
-						.get(0);
-				String caState = (String) principal.getValues(X509Name.ST).get(
-						0);
-				String caCountry = (String) principal.getValues(X509Name.C)
-						.get(0);
+
+				// Organization
+				String caOrganization = new String();
+				if (principal.getValues(X509Name.O).size() != 0) {
+					caOrganization = (String) principal.getValues(X509Name.O)
+							.get(0);
+				}
+
+				// Organizational unit
+				String caOrganizationalUnit = new String();
+				if (principal.getValues(X509Name.OU).size() != 0) {
+					caOrganizationalUnit = (String) principal.getValues(
+							X509Name.OU).get(0);
+				}
+
+				// Locality
+				String caLocality = new String();
+				if (principal.getValues(X509Name.L).size() != 0) {
+					caLocality = (String) principal.getValues(X509Name.L)
+							.get(0);
+				}
+				String caState = new String();
+				if (principal.getValues(X509Name.ST).size() != 0) {
+					caState = (String) principal.getValues(X509Name.ST).get(0);
+				}
+
+				// Country
+				String caCountry = new String();
+				if (principal.getValues(X509Name.C).size() != 0) {
+					caCountry = (String) principal.getValues(X509Name.C).get(0);
+				}
 
 				// Common name
 				String commonName = request.getParameter(PARAM_COMMON_NAME);

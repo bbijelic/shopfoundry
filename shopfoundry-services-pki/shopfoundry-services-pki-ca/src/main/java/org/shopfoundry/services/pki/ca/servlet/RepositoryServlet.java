@@ -1,6 +1,7 @@
 package org.shopfoundry.services.pki.ca.servlet;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 
@@ -60,11 +61,25 @@ public class RepositoryServlet extends HttpServlet {
 		// Get certificate authority
 		try {
 
-			// Get certificate authority
-			CertificateAuthority ca = CertificateAuthority.getInstance(
-					rootCaCertificateFilePath, rootCaCertificateKeyFilePath,
-					intermediateCaCertificateFilePath,
-					intermediateCaCertificateKeyFilePath);
+			// Root CA certificate
+			File rootCaCertificateFile = new File(
+					this.rootCaCertificateFilePath);
+			// Root CA private key
+			File rootCaPrivateKeyFile = new File(
+					this.rootCaCertificateKeyFilePath);
+
+			// Intermediate CA certificate
+			File intermediateCaCertificateFile = new File(
+					this.intermediateCaCertificateFilePath);
+			// Intermediate CA private key
+			File intermediateCaPrivateKeyFile = new File(
+					this.intermediateCaCertificateKeyFilePath);
+
+			// Initialize certificate authority
+			CertificateAuthority ca = CertificateAuthority
+					.getInstance(rootCaCertificateFile, rootCaPrivateKeyFile,
+							intermediateCaCertificateFile,
+							intermediateCaPrivateKeyFile);
 
 			X509Certificate caCertificate = ca.getCACertificate();
 			X509Certificate rootCaCertificate = ca.getRootCACertificate();
@@ -77,7 +92,7 @@ public class RepositoryServlet extends HttpServlet {
 			response.getWriter().write(new String(bos.toByteArray()));
 			response.getWriter().println(X509Factory.END_CERT);
 			bos.reset();
-			
+
 			BASE64Encoder rootCaEncoder = new BASE64Encoder();
 			response.getWriter().println(X509Factory.BEGIN_CERT);
 			rootCaEncoder.encodeBuffer(rootCaCertificate.getEncoded(), bos);

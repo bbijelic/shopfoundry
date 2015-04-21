@@ -9,4 +9,8 @@ package org.shopfoundry.core.service.gateway;
  * 
  * @author Bojan Bijelic
  */
-public interface OutboundGateway extends Gateway {}
+public interface OutboundGateway extends Gateway {
+	
+	
+	
+}
