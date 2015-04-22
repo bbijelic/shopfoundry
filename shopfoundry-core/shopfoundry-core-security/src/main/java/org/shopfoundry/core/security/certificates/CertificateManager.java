@@ -6,6 +6,8 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
+ * Certificate manager
+ * 
  * @author Bojan Bijelic
  */
 public interface CertificateManager {
@@ -27,10 +29,10 @@ public interface CertificateManager {
 			List<X509Certificate> trustedCertificates) throws KeyStoreException;
 
 	/**
-	 * Returns client certificates key store (PKCS12).
+	 * Returns end entity certificates key store (PKCS12).
 	 * 
-	 * @return the client certificates key store
+	 * @return the end entity certificates key store
 	 */
-	public KeyStore getClientCertificates();
+	public KeyStore getEndEntityCertificates();
 
 }

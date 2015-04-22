@@ -24,7 +24,6 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -159,7 +158,7 @@ public class StartingState implements ServiceState {
 		serviceContext
 				.getSecurityManager()
 				.getCertificateManager()
-				.getClientCertificates()
+				.getEndEntityCertificates()
 				.setKeyEntry(certificate.getSerialNumber().toString(),
 						keyPair.getPrivate(),
 						serviceContext.getServiceGUID().toCharArray(),
@@ -286,7 +285,7 @@ public class StartingState implements ServiceState {
 			}
 
 		};
-		
+
 		// Creates client which ignores certificate warnings and trusts all
 		// certificates
 		CloseableHttpClient httpclient = HttpClients
@@ -307,7 +306,7 @@ public class StartingState implements ServiceState {
 										return false;
 									}
 								}).build()).build();
-		
+
 		// Execute POST operation
 		String response = httpclient.execute(httpPost, responseHandler);
 

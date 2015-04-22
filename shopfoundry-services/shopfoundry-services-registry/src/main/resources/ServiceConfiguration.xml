@@ -32,11 +32,7 @@
 	<bean id="HttpServer" class="org.eclipse.jetty.server.Server" />
 
 	<!-- SSL Context factory -->
-	<bean id="SSLContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
-		<!-- <property name="keyStorePath" value="resources/keystore.jks" /> -->
-		<!-- <property name="keyStorePassword" value="shopfoundry" /> -->
-		<!-- <property name="keyManagerPassword" value="shopfoundry" /> -->
-	</bean>
+	<bean id="SSLContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory" />
 
 	<!-- SSL Connection factory -->
 	<bean id="SSLConnectionFactory" class="org.eclipse.jetty.server.SslConnectionFactory">

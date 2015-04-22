@@ -22,6 +22,7 @@ import sun.security.provider.X509Factory;
  * 
  * @author Bojan Bijelic
  */
+@SuppressWarnings("restriction")
 public class RepositoryServlet extends HttpServlet {
 
 	private static final long serialVersionUID = -2534103454706857013L;
@@ -51,7 +52,6 @@ public class RepositoryServlet extends HttpServlet {
 	 * 
 	 * Returns CA certificate
 	 */
-	@SuppressWarnings("restriction")
 	protected void doGet(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 

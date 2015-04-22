@@ -47,6 +47,7 @@ public class DefaultCaServiceOutboundGateway implements
 	private String certificateRevocationUrl;
 	private String certificateRevocationListUrl;
 
+	@SuppressWarnings("unused")
 	private SecurityManager securityManager;
 
 	/**

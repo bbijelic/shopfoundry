@@ -1,6 +1,7 @@
 package org.shopfoundry.services.registry;
 
 import java.security.KeyPair;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -29,11 +30,12 @@ public class RegistryService {
 	private final static Logger logger = LoggerFactory
 			.getLogger(RegistryService.class);
 
+	private static ApplicationContext applicationContext;
+
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		// Load application context from classpath
-		@SuppressWarnings("resource")
-		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+		applicationContext = new ClassPathXmlApplicationContext(
 				"ServiceConfiguration.xml");
 
 		// Make instance and start email dispatcher service
@@ -74,12 +76,22 @@ public class RegistryService {
 			// Certificate subject information
 			CertificateSubjectInformation csi = new CertificateSubjectInformation();
 			csi.setCommonName(systemSpecification.getHostname());
-			csi.setOrganizationalUnit("RegistryService");
+			csi.setOrganizationalUnit(getClass().getSimpleName());
 			csi.setPublicKey(keyPair.getPublic());
 
 			// Send certificate signing request to the Certificate Authority
-			X509Certificate serviceCertificate = caServiceOutboundGateway
+			Certificate serviceCertificate = caServiceOutboundGateway
 					.requestCertificateSign(csi);
+
+			Certificate[] certificates = { serviceCertificate };
+
+			// Import serviceCertificate and corresponding private key to the
+			// key store
+			securityManager
+					.getCertificateManager()
+					.getEndEntityCertificates()
+					.setKeyEntry("1", keyPair.getPrivate(), "".toCharArray(),
+							certificates);
 
 			if (logger.isTraceEnabled())
 				logger.trace("Service certificate: {}",
@@ -93,7 +105,7 @@ public class RegistryService {
 		} catch (Exception e) {
 
 			if (logger.isErrorEnabled())
-				logger.error(e.toString(), e);
+				logger.error(e.getMessage(), e);
 
 			if (logger.isInfoEnabled())
 				logger.info("Shutting down service");

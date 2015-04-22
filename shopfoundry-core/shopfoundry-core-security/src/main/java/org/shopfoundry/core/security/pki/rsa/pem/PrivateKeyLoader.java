@@ -18,7 +18,6 @@ import sun.misc.BASE64Decoder;
  * 
  * @author Bojan Bijelic
  */
-@SuppressWarnings("restriction")
 public class PrivateKeyLoader {
 
 	private final static Logger logger = LoggerFactory
@@ -49,8 +48,8 @@ public class PrivateKeyLoader {
 
 		BASE64Decoder decoder = new BASE64Decoder();
 		keyBytes = decoder.decodeBuffer(privateKey);
-		
-		if(logger.isDebugEnabled())
+
+		if (logger.isDebugEnabled())
 			logger.debug("Loaded {} bytes", keyBytes.length);
 
 		// generate private key

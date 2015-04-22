@@ -52,28 +52,28 @@ public class DefaultCertificateManager implements CertificateManager {
 		trustedCerticiates.load(null, null);
 
 		// Creating an empty PKCS12 keystore for client certificates
-		clientCertificates = KeyStore.getInstance("PKCS12");
-		clientCertificates.load(null, null);
+		endEntityCertificates = KeyStore.getInstance("PKCS12");
+		endEntityCertificates.load(null, null);
 	}
 
 	/**
 	 * Client certificates.
 	 */
-	private KeyStore clientCertificates;
+	private KeyStore endEntityCertificates;
 
 	/**
-	 * Client certificates setter.
+	 * End Entity certificates setter.
 	 * 
-	 * @param clientCertificates
-	 *            the clientCertificates to set
+	 * @param endEntityCertificates
+	 *            the endEntityCertificates to set
 	 */
-	public void setClientCertificates(KeyStore clientCertificates) {
-		this.clientCertificates = clientCertificates;
+	public void setEndEntityCertificates(KeyStore endEntityCertificates) {
+		this.endEntityCertificates = endEntityCertificates;
 	}
 
 	@Override
-	public KeyStore getClientCertificates() {
-		return clientCertificates;
+	public KeyStore getEndEntityCertificates() {
+		return endEntityCertificates;
 	}
 
 	@Override
