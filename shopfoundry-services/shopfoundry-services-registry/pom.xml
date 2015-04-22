@@ -106,6 +106,7 @@
 									<filtering>true</filtering>
 								</resource>
 							</resources>
+							<encoding>${encoding}</encoding>
 						</configuration>
 					</execution>
 				</executions>

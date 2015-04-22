@@ -34,4 +34,10 @@ public interface SystemSpecification {
 	 * @return the total memory currently available to the JVM (bytes)
 	 */
 	public long getTotalMemory();
+	
+	/**
+	 * Host name of the machine
+	 * @return the host name of the machine
+	 */
+	public String getHostname();
 }

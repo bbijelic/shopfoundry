@@ -5,11 +5,19 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Bojan Bijelic
  */
 public class DefaultCertificateManager implements CertificateManager {
+
+	private static final Logger logger = LoggerFactory
+			.getLogger(DefaultCertificateManager.class);
 
 	private KeyStore trustedCerticiates;
 
@@ -66,6 +74,23 @@ public class DefaultCertificateManager implements CertificateManager {
 	@Override
 	public KeyStore getClientCertificates() {
 		return clientCertificates;
+	}
+
+	@Override
+	public void importTrustedCertificates(
+			List<X509Certificate> trustedCertificates) throws KeyStoreException {
+		
+		// Add certificate chain to the trust store
+		for (X509Certificate x509Certificate : trustedCertificates) {
+
+			if (logger.isInfoEnabled())
+				logger.info("Adding certificate to the trust store: {}",
+						x509Certificate.getSubjectDN().toString());
+
+			getTrustedCerticiates().setCertificateEntry(
+					x509Certificate.getSubjectDN().toString(), x509Certificate);
+		}
+
 	}
 
 }

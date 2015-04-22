@@ -12,6 +12,7 @@
 
 	<properties>
 		<jdk.version>1.7</jdk.version>
+		<encoding>UTF-8</encoding>
 	</properties>
 
 	<build>

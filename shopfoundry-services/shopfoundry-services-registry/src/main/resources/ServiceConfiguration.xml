@@ -138,6 +138,8 @@
 		<constructor-arg ref="CertificateAuthorityOutboundGateway" />
 		<!-- GUID provider -->
 		<constructor-arg ref="GUIDProvider" />
+		<!-- System specification -->
+		<constructor-arg ref="SystemSpecification" />
 	</bean>
 
 </beans>

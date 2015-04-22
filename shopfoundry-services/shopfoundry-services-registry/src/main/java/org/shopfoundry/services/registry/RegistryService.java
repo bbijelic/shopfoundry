@@ -7,6 +7,7 @@ import java.util.List;
 import org.shopfoundry.core.security.SecurityManager;
 import org.shopfoundry.core.security.pki.rsa.RSAKeyPairGenerator;
 import org.shopfoundry.core.service.gateway.InboundGateway;
+import org.shopfoundry.core.service.system.SystemSpecification;
 import org.shopfoundry.core.utils.GuidProvider;
 import org.shopfoundry.services.registry.outbound.ca.CaServiceOutboundGateway;
 import org.shopfoundry.services.registry.outbound.ca.CertificateSubjectInformation;
@@ -46,11 +47,13 @@ public class RegistryService {
 	 * @param inboundGateways
 	 * @param securityManager
 	 * @param caServiceOutboundGateway
+	 * @param guidProvider
+	 * @param systemSpecification
 	 */
 	public RegistryService(List<InboundGateway> inboundGateways,
 			SecurityManager securityManager,
 			CaServiceOutboundGateway caServiceOutboundGateway,
-			GuidProvider guidProvider) {
+			GuidProvider guidProvider, SystemSpecification systemSpecification) {
 
 		try {
 
@@ -61,28 +64,16 @@ public class RegistryService {
 			List<X509Certificate> certificateChain = caServiceOutboundGateway
 					.pullCertificateChain();
 
-			// Add certificate chain to the trust store
-			for (X509Certificate x509Certificate : certificateChain) {
-
-				if (logger.isInfoEnabled())
-					logger.info("Adding certificate to the trust store: {}",
-							x509Certificate.getSubjectDN().toString());
-
-				securityManager
-						.getCertificateManager()
-						.getTrustedCerticiates()
-						.setCertificateEntry(
-								x509Certificate.getSubjectDN().toString(),
-								x509Certificate);
-			}
+			// Import trusted certificates
+			securityManager.getCertificateManager().importTrustedCertificates(
+					certificateChain);
 
 			// Generate key pair for the service certificate
-			RSAKeyPairGenerator rsaKeyPairGenerator = new RSAKeyPairGenerator();
-			KeyPair keyPair = rsaKeyPairGenerator.generateKey(2048);
+			KeyPair keyPair = RSAKeyPairGenerator.generateKey(2048);
 
 			// Certificate subject information
 			CertificateSubjectInformation csi = new CertificateSubjectInformation();
-			csi.setCommonName(guidProvider.getGUID() + "@RegistryService");
+			csi.setCommonName(systemSpecification.getHostname());
 			csi.setOrganizationalUnit("RegistryService");
 			csi.setPublicKey(keyPair.getPublic());
 
