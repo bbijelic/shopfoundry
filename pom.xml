@@ -34,7 +34,6 @@
 	<modules>
 		<module>shopfoundry-core</module>
 		<module>shopfoundry-services</module>
-		<module>shopfoundry-services-pki</module>
 	</modules>
 	<dependencies>
 		<dependency>

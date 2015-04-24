@@ -14,5 +14,6 @@
   <modules>
   	<module>shopfoundry-services-email</module>
   	<module>shopfoundry-services-registry</module>
+	<module>shopfoundry-services-pki-ca</module>
   </modules>
 </project>
