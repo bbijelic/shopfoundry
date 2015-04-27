@@ -4,10 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- System specification -->
-	<bean id="SystemSpecification"
-		class="org.shopfoundry.core.service.system.DefaultSystemSpecification" />
-
 	<!-- GUID provider -->
 	<bean id="GUIDProvider" class="org.shopfoundry.core.utils.DefaultGuidProvider" />
 
@@ -83,17 +79,16 @@
 	<bean id="CertificateManager"
 		class="org.shopfoundry.core.security.certificates.DefaultCertificateManager" />
 
-	<!-- Security manager -->
-	<bean id="SecurityManager" class="org.shopfoundry.core.security.DefaultSecurityManager">
-		<!-- Certificate Manager -->
-		<property name="certificateManager" ref="CertificateManager" />
+	<!-- Security provider -->
+	<bean id="SecurityProvider" class="org.shopfoundry.core.security.DefaultSecurityProvider">
+		<constructor-arg ref="CertificateManager" />
 	</bean>
 
 	<!-- Certificate Authority Outbound Gateway -->
 	<bean id="CertificateAuthorityOutboundGateway"
 		class="org.shopfoundry.services.registry.outbound.ca.DefaultCaServiceOutboundGateway">
 		<!-- Security Manager -->
-		<constructor-arg ref="SecurityManager" />
+		<constructor-arg ref="SecurityProvider" />
 		<!-- Certificate Authority CA chain URL -->
 		<constructor-arg>
 			<bean id="CertificateChainUrl" class="java.lang.String">
@@ -129,13 +124,11 @@
 			</list>
 		</constructor-arg>
 		<!-- Security Manager -->
-		<constructor-arg ref="SecurityManager" />
+		<constructor-arg ref="SecurityProvider" />
 		<!-- Certificate Authority Outbound Gateway -->
 		<constructor-arg ref="CertificateAuthorityOutboundGateway" />
 		<!-- GUID provider -->
 		<constructor-arg ref="GUIDProvider" />
-		<!-- System specification -->
-		<constructor-arg ref="SystemSpecification" />
 	</bean>
 
 </beans>

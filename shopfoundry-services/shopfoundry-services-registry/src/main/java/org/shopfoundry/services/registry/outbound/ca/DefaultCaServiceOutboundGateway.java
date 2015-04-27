@@ -26,7 +26,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
-import org.shopfoundry.core.security.SecurityManager;
+import org.shopfoundry.core.security.SecurityProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public class DefaultCaServiceOutboundGateway implements
 	private String certificateRevocationListUrl;
 
 	@SuppressWarnings("unused")
-	private SecurityManager securityManager;
+	private SecurityProvider securityManager;
 
 	/**
 	 * Constructor.
@@ -58,7 +58,7 @@ public class DefaultCaServiceOutboundGateway implements
 	 * @param certificateRevocationUrl
 	 * @param certificateRevocationListUrl
 	 */
-	public DefaultCaServiceOutboundGateway(SecurityManager securityManager,
+	public DefaultCaServiceOutboundGateway(SecurityProvider securityManager,
 			String certificateChainUrl, String certificateSigningUrl,
 			String certificateRevocationUrl, String certificateRevocationListUrl) {
 

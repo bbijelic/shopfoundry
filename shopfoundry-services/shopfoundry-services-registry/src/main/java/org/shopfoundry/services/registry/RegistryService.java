@@ -48,13 +48,13 @@ public class RegistryService {
 	 * Constructor.
 	 * 
 	 * @param inboundGateways
-	 * @param securityManager
+	 * @param securityProvider
 	 * @param caServiceOutboundGateway
 	 * @param guidProvider
 	 * @param systemSpecification
 	 */
 	public RegistryService(List<InboundGateway> inboundGateways,
-			SecurityProvider securityManager,
+			SecurityProvider securityProvider,
 			CaServiceOutboundGateway caServiceOutboundGateway,
 			GuidProvider guidProvider) {
 
@@ -84,7 +84,7 @@ public class RegistryService {
 					.pullCertificateChain();
 
 			// Import trusted certificates
-			securityManager.getCertificateManager().importTrustedCertificates(
+			securityProvider.getCertificateManager().importTrustedCertificates(
 					certificateChain);
 
 			// Generate key pair for the service certificate
@@ -104,7 +104,7 @@ public class RegistryService {
 
 			// Import serviceCertificate and corresponding private key to the
 			// key store
-			securityManager
+			securityProvider
 					.getCertificateManager()
 					.getEndEntityCertificates()
 					.setKeyEntry("1", keyPair.getPrivate(), "".toCharArray(),

@@ -4,10 +4,6 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- System specification -->
-	<bean id="SystemSpecification"
-		class="org.shopfoundry.core.service.system.DefaultSystemSpecification" />
-
 	<!-- GUID provider -->
 	<bean id="GUIDProvider" class="org.shopfoundry.core.utils.DefaultGuidProvider" />
 
