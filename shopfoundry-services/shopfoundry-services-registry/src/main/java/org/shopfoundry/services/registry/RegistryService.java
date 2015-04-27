@@ -10,6 +10,8 @@ import org.shopfoundry.core.security.pki.rsa.RSAKeyPairGenerator;
 import org.shopfoundry.core.service.gateway.InboundGateway;
 import org.shopfoundry.core.service.system.SystemSpecification;
 import org.shopfoundry.core.utils.GuidProvider;
+import org.shopfoundry.services.registry.db.entity.ServiceGroup;
+import org.shopfoundry.services.registry.db.repository.ServiceGroupRepository;
 import org.shopfoundry.services.registry.outbound.ca.CaServiceOutboundGateway;
 import org.shopfoundry.services.registry.outbound.ca.CertificateSubjectInformation;
 import org.slf4j.Logger;
@@ -56,6 +58,22 @@ public class RegistryService {
 			SecurityManager securityManager,
 			CaServiceOutboundGateway caServiceOutboundGateway,
 			GuidProvider guidProvider, SystemSpecification systemSpecification) {
+
+		// Initialize repository
+		ServiceGroupRepository serviceGroupRepository = new ServiceGroupRepository();
+		ServiceGroup serviceGroup = null;
+		try {
+			// Find service group by name and version
+			serviceGroup = serviceGroupRepository.findByNameAndVersion(
+					"RegistryService", "0.0.1");
+
+			if (logger.isTraceEnabled())
+				logger.trace(serviceGroup.toString());
+
+		} catch (Exception e1) {
+			if (logger.isErrorEnabled())
+				logger.error(e1.getMessage(), e1);
+		}
 
 		try {
 

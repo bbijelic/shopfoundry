@@ -8,7 +8,7 @@
 	</parent>
 	<artifactId>shopfoundry-services-pki-ca</artifactId>
 
-	<name>ShopFoundry / Services / PKI / CA</name>
+	<name>ShopFoundry / Services / Certificate Authority</name>
 	<description>Online marketplace platform PKI Certificate Authority service package</description>
 	<dependencies>
 		<dependency>

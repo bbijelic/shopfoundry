@@ -33,7 +33,7 @@ public class HibernateUtil {
 				// Configuration load from hibernate configuration file
 				Configuration configuration = new Configuration()
 						.configure(HibernateUtil.class
-								.getResource("hibernate.cfg.xml"));
+								.getResource("/hibernate.cfg.xml"));
 
 				// Standard service registry builder instance
 				StandardServiceRegistryBuilder serviceRegistryBuilder = new StandardServiceRegistryBuilder();

@@ -15,44 +15,41 @@ public interface Repository<T, ID extends Serializable> {
 	 * 
 	 * @param id
 	 * @return the entity
+	 * @throws Exception 
 	 */
-	T findById(ID id);
+	T findById(ID id) throws Exception;
 
 	/**
 	 * Finds all entities in database
 	 * 
 	 * @return the entity list
+	 * @throws Exception 
 	 */
-	List<T> findAll();
-
-	/**
-	 * Finds by entity equality
-	 * 
-	 * @param entity
-	 * @return the entity list
-	 */
-	List<T> find(T entity);
+	List<T> findAll() throws Exception;
 
 	/**
 	 * Creates new database entry
 	 * 
 	 * @param entity
 	 * @return the id
+	 * @throws Exception 
 	 */
-	T create(T entity);
+	T create(T entity) throws Exception;
 
 	/**
 	 * Updates database entry
 	 * 
 	 * @param transientEntity
+	 * @throws Exception 
 	 */
-	void update(T transientEntity);
+	void update(T transientEntity) throws Exception;
 
 	/**
 	 * Deletes database entry
 	 * 
 	 * @param persistentEntity
+	 * @throws Exception
 	 */
-	void delete(T persistentEntity);
+	void delete(T persistentEntity) throws Exception;
 
 }

@@ -22,6 +22,11 @@
 			<artifactId>shopfoundry-core-utils</artifactId>
 			<version>0.0.1</version>
 		</dependency>
+		<dependency>
+			<groupId>shopfoundry.org</groupId>
+			<artifactId>shopfoundry-core-db</artifactId>
+			<version>0.0.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -3,8 +3,7 @@
 	"users":[
 		{"name":"sfuser","password_hash":"t8vwfHpTti8I1oOq9mcDhj6n0co=","tags":""}],
 	"vhosts":[
-		{"name":"shopfoundry"},
-		{"name":"/"}],
+		{"name":"shopfoundry"}],
 	"permissions":[
 		{"user":"sfuser","vhost":"shopfoundry","configure":".*","write":".*","read":".*"}],
 	"parameters":[],
