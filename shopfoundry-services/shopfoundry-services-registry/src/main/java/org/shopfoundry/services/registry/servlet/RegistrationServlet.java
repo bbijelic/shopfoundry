@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.shopfoundry.core.service.registry.dto.ServiceRegistrationResponse;
+import org.shopfoundry.services.registry.db.entity.ServiceGroup;
+import org.shopfoundry.services.registry.db.repository.ServiceGroupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +48,9 @@ public class RegistrationServlet extends HttpServlet {
 		if (logger.isTraceEnabled())
 			logger.trace(request.toString());
 
+		// Initialize repository
+		ServiceGroupRepository serviceGroupRepository = new ServiceGroupRepository();
+
 		List<String> requiredHeaders = new ArrayList<String>();
 		requiredHeaders.add("Accept");
 		requiredHeaders.add("Content-Type");
@@ -63,6 +68,7 @@ public class RegistrationServlet extends HttpServlet {
 
 		if (validateRequest(requiredHeaders, supportedResponseContentTypes,
 				requiredRequestParameters, request)) {
+
 			// Set status code
 			response.setStatus(HttpServletResponse.SC_OK);
 
@@ -70,53 +76,70 @@ public class RegistrationServlet extends HttpServlet {
 			String serviceGroup = request.getParameter(PARAM_SERVICE_GROUP);
 			String serviceVersion = request.getParameter(PARAM_SERVICE_VERSION);
 
-			// Registering service
-			if (action.equalsIgnoreCase(ACTION_REGISTER)) {
+			ServiceRegistrationResponse registrationResponse = new ServiceRegistrationResponse();
 
-				// Transaction ID
-				String transactionID = UUID.randomUUID().toString();
+			try {
 
-				// Generated service GUI
-				String serviceGUID = UUID.randomUUID().toString();
+				// Try to find service configuration by service group name and
+				// version
+				ServiceGroup serviceGroupEntity = serviceGroupRepository
+						.findByNameAndVersion(serviceGroup, serviceVersion);
 
-				if (logger.isInfoEnabled())
-					logger.info(
-							"[Transaction: {}] Registering service from service group '{}' version '{}' with GUID '{}'",
-							transactionID, serviceGroup, serviceVersion,
-							serviceGUID);
+				// Registering service
+				if (action.equalsIgnoreCase(ACTION_REGISTER)) {
 
-				// Set response content type to accepted by client
-				response.setContentType(request.getHeader("Accept"));
+					// Transaction ID
+					String transactionID = UUID.randomUUID().toString();
 
-				// Service configuration
-				Map<String, String> serviceConfiguration = new HashMap<String, String>();
+					// Generated service GUI
+					String serviceGUID = UUID.randomUUID().toString();
 
-				ServiceRegistrationResponse registrationResponse = new ServiceRegistrationResponse();
+					if (logger.isInfoEnabled())
+						logger.info(
+								"[Transaction: {}] Registering service from service group '{}' version '{}' with GUID '{}'",
+								transactionID, serviceGroup, serviceVersion,
+								serviceGUID);
+
+					// Set response content type to accepted by client
+					response.setContentType(request.getHeader("Accept"));
+
+					// Service configuration
+					Map<String, String> serviceConfiguration = new HashMap<String, String>();
+
+					registrationResponse.setServiceGiud(serviceGUID);
+					registrationResponse.setTransactionId(transactionID);
+					registrationResponse
+							.setServiceConfiguration(serviceConfiguration);
+
+					if (logger.isDebugEnabled())
+						logger.debug(registrationResponse.toString());
+
+				} else {
+					if (logger.isErrorEnabled())
+						logger.error("Action '{}' is not implemented", action);
+					response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
+				}
+
+			} catch (Exception e) {
+				if (logger.isErrorEnabled())
+					logger.error(e.getMessage(), e);
+
+				// Set status code
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+
+			} finally {
+
+				// Allways return this values
 				registrationResponse.setServiceGroup(serviceGroup);
 				registrationResponse.setServiceVersion(serviceVersion);
-				registrationResponse.setServiceGiud(serviceGUID);
-				registrationResponse.setTransactionId(transactionID);
-				registrationResponse
-						.setServiceConfiguration(serviceConfiguration);
-
-				if (logger.isDebugEnabled())
-					logger.debug(registrationResponse.toString());
 
 				// Handle JSON response
 				if (request.getHeader("Accept").equalsIgnoreCase(
 						CONTENT_TYPE_JSON)) {
 					// Encode to JSON and write
 					response.getWriter().print(registrationResponse.toJSON());
-
-				} else if (request.getHeader("Accept").equalsIgnoreCase(
-						CONTENT_TYPE_XML)) {
-
 				}
 
-			} else {
-				if (logger.isErrorEnabled())
-					logger.error("Action '{}' is not implemented", action);
-				response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
 			}
 
 		} else {
