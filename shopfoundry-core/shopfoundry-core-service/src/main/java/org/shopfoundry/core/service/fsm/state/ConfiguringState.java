@@ -1,7 +1,6 @@
 package org.shopfoundry.core.service.fsm.state;
 
-import org.shopfoundry.core.service.ServiceContext;
-import org.shopfoundry.core.service.fsm.ServiceState;
+import org.shopfoundry.core.service.context.ServiceContext;
 import org.shopfoundry.core.service.fsm.ServiceStateMachine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,23 +10,24 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Bojan Bijelic
  */
-public class ConfigurationState implements ServiceState {
+public class ConfiguringState implements ServiceState {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(StartingState.class);
 
 	@Override
 	public void handle(ServiceContext serviceContext,
-			ServiceStateMachine serviceStateMachine) throws Exception {
+			ServiceStateMachine serviceStateMachine)
+			throws ServiceStateException {
 
 		if (logger.isInfoEnabled())
-			logger.info("Handling ConfigurationState");
+			logger.info("Handling ConfiguringState");
 
 	}
 
 	@Override
-	public String getStateName() {
-		return this.getClass().getSimpleName();
+	public AllowedState getState() {
+		return AllowedState.CONFIGURING;
 	}
 
 }

@@ -19,21 +19,15 @@ public class DefaultCertificateManager implements CertificateManager {
 	private static final Logger logger = LoggerFactory
 			.getLogger(DefaultCertificateManager.class);
 
-	private KeyStore trustedCerticiates;
-
-	/**
-	 * Trusted certificates setter.
-	 * 
-	 * @param trustedCerticiates
-	 *            the trustedCerticiates to set
-	 */
-	public void setTrustedCerticiates(KeyStore trustedCerticiates) {
-		this.trustedCerticiates = trustedCerticiates;
-	}
+	private KeyStore trustedCertifiates;
 
 	@Override
-	public KeyStore getTrustedCerticiates() {
-		return trustedCerticiates;
+	public KeyStore getTrustedCerticiates() throws CertificateManagerException {
+		if (this.trustedCertifiates == null)
+			throw new CertificateManagerException(
+					"Trusted certifiacate key store not set");
+
+		return trustedCertifiates;
 	}
 
 	/**
@@ -44,16 +38,27 @@ public class DefaultCertificateManager implements CertificateManager {
 	 * @throws CertificateException
 	 * @throws IOException
 	 */
-	public DefaultCertificateManager() throws KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, IOException {
+	public DefaultCertificateManager() throws CertificateManagerException {
 
-		// Creating an empty JKS keystore for a trusted certificates
-		trustedCerticiates = KeyStore.getInstance(KeyStore.getDefaultType());
-		trustedCerticiates.load(null, null);
+		try {
 
-		// Creating an empty PKCS12 keystore for client certificates
-		endEntityCertificates = KeyStore.getInstance("PKCS12");
-		endEntityCertificates.load(null, null);
+			// Creating an empty JKS keystore for a trusted certificates
+			trustedCertifiates = KeyStore
+					.getInstance(KeyStore.getDefaultType());
+			trustedCertifiates.load(null, null);
+
+			// Creating an empty PKCS12 keystore for client certificates
+			endEntityCertificates = KeyStore.getInstance("PKCS12");
+			endEntityCertificates.load(null, null);
+
+		} catch (KeyStoreException | NoSuchAlgorithmException
+				| CertificateException | IOException e) {
+			if (logger.isErrorEnabled())
+				logger.error(e.getMessage(), e);
+
+			throw new CertificateManagerException(e.getMessage(), e);
+		}
+
 	}
 
 	/**
@@ -61,25 +66,20 @@ public class DefaultCertificateManager implements CertificateManager {
 	 */
 	private KeyStore endEntityCertificates;
 
-	/**
-	 * End Entity certificates setter.
-	 * 
-	 * @param endEntityCertificates
-	 *            the endEntityCertificates to set
-	 */
-	public void setEndEntityCertificates(KeyStore endEntityCertificates) {
-		this.endEntityCertificates = endEntityCertificates;
-	}
-
 	@Override
-	public KeyStore getEndEntityCertificates() {
-		return endEntityCertificates;
+	public KeyStore getEndEntityCertificates()
+			throws CertificateManagerException {
+		if (this.endEntityCertificates == null)
+			throw new CertificateManagerException(
+					"End entity certifiacate key store not set");
+		return this.endEntityCertificates;
 	}
 
 	@Override
 	public void importTrustedCertificates(
-			List<X509Certificate> trustedCertificates) throws KeyStoreException {
-		
+			List<X509Certificate> trustedCertificates)
+			throws CertificateManagerException {
+
 		// Add certificate chain to the trust store
 		for (X509Certificate x509Certificate : trustedCertificates) {
 
@@ -87,8 +87,16 @@ public class DefaultCertificateManager implements CertificateManager {
 				logger.info("Adding certificate to the trust store: {}",
 						x509Certificate.getSubjectDN().toString());
 
-			getTrustedCerticiates().setCertificateEntry(
-					x509Certificate.getSubjectDN().toString(), x509Certificate);
+			try {
+				getTrustedCerticiates().setCertificateEntry(
+						x509Certificate.getSubjectDN().toString(),
+						x509Certificate);
+			} catch (KeyStoreException e) {
+				if (logger.isErrorEnabled())
+					logger.error(e.getMessage(), e);
+
+				throw new CertificateManagerException(e.getMessage(), e);
+			}
 		}
 
 	}

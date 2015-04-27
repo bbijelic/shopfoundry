@@ -7,8 +7,7 @@ import java.util.List;
 
 import org.shopfoundry.core.security.SecurityManager;
 import org.shopfoundry.core.security.pki.rsa.RSAKeyPairGenerator;
-import org.shopfoundry.core.service.gateway.InboundGateway;
-import org.shopfoundry.core.service.system.SystemSpecification;
+import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
 import org.shopfoundry.core.utils.GuidProvider;
 import org.shopfoundry.services.registry.db.entity.ServiceGroup;
 import org.shopfoundry.services.registry.db.repository.ServiceGroupRepository;
@@ -57,7 +56,7 @@ public class RegistryService {
 	public RegistryService(List<InboundGateway> inboundGateways,
 			SecurityManager securityManager,
 			CaServiceOutboundGateway caServiceOutboundGateway,
-			GuidProvider guidProvider, SystemSpecification systemSpecification) {
+			GuidProvider guidProvider) {
 
 		// Initialize repository
 		ServiceGroupRepository serviceGroupRepository = new ServiceGroupRepository();

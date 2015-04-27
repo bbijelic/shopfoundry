@@ -6,6 +6,8 @@ import org.shopfoundry.core.security.certificates.CertificateManager;
  * Security manager.
  * 
  * @author Bojan Bijelic
+ * 
+ * @deprecated
  */
 public interface SecurityManager {
 

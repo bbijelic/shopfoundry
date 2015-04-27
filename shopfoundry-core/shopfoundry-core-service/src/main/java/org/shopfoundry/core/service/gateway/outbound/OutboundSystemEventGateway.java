@@ -1,4 +1,6 @@
-package org.shopfoundry.core.service.gateway;
+package org.shopfoundry.core.service.gateway.outbound;
+
+import org.shopfoundry.core.service.gateway.Gateway;
 
 /**
  * Outbound system event gateway.

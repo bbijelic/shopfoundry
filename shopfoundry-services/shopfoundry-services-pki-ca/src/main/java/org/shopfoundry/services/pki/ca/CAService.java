@@ -1,6 +1,6 @@
 package org.shopfoundry.services.pki.ca;
 
-import org.shopfoundry.core.service.gateway.InboundGateway;
+import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;

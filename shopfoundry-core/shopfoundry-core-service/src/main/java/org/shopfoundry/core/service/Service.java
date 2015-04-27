@@ -9,8 +9,8 @@ public interface Service {
 
 	/**
 	 * Starts service.
-	 * @throws Exception 
+	 * @throws ServiceException 
 	 */
-	public void start() throws Exception;
+	public void start() throws ServiceException;
 
 }

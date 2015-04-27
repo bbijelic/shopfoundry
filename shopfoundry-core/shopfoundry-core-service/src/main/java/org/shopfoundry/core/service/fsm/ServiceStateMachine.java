@@ -1,5 +1,10 @@
 package org.shopfoundry.core.service.fsm;
 
+import java.util.Map;
+
+import org.shopfoundry.core.service.fsm.state.AllowedState;
+import org.shopfoundry.core.service.fsm.state.ServiceState;
+
 /**
  * State machine interface.
  * 
@@ -8,25 +13,27 @@ package org.shopfoundry.core.service.fsm;
 public interface ServiceStateMachine {
 
 	/**
-	 * Returns default service state.
-	 * 
-	 * @return the default service state
-	 * @throws Exception
-	 */
-	public ServiceState getDefaultState() throws Exception;
-
-	/**
 	 * Returns current service state.
 	 * 
 	 * @return the current service state
+	 * @throws ServiceStateMachineException
 	 */
-	public ServiceState getCurrentState() throws Exception;
+	public ServiceState getCurrentState() throws ServiceStateMachineException;
 
 	/**
 	 * Changes service state.
 	 * 
-	 * @param serviceState
-	 * @throws Exception
+	 * @param nextState
+	 * @throws ServiceStateMachineException
 	 */
-	public void changeState(ServiceState serviceState) throws Exception;
+	public void changeState(AllowedState nextState)
+			throws ServiceStateMachineException;
+
+	/**
+	 * Reutns state mapping.
+	 * 
+	 * @return the state mapping
+	 */
+	public Map<AllowedState, ServiceState> getStateMapping()
+			throws ServiceStateMachineException;
 }

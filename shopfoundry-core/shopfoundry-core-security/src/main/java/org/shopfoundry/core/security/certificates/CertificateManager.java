@@ -1,7 +1,6 @@
 package org.shopfoundry.core.security.certificates;
 
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -16,23 +15,27 @@ public interface CertificateManager {
 	 * Returns trusted certificates key store (JKS)
 	 * 
 	 * @return the trusted certificates key store
+	 * @throws CertificateManagerException
 	 */
-	public KeyStore getTrustedCerticiates();
+	public KeyStore getTrustedCerticiates() throws CertificateManagerException;
 
 	/**
 	 * Imports trusted certificates into the key store (JKS)
 	 * 
 	 * @param trustedCertificates
-	 * @throws KeyStoreException
+	 * @throws CertificateManagerException
 	 */
 	public void importTrustedCertificates(
-			List<X509Certificate> trustedCertificates) throws KeyStoreException;
+			List<X509Certificate> trustedCertificates)
+			throws CertificateManagerException;
 
 	/**
 	 * Returns end entity certificates key store (PKCS12).
 	 * 
 	 * @return the end entity certificates key store
+	 * @throws CertificateManagerException
 	 */
-	public KeyStore getEndEntityCertificates();
+	public KeyStore getEndEntityCertificates()
+			throws CertificateManagerException;
 
 }

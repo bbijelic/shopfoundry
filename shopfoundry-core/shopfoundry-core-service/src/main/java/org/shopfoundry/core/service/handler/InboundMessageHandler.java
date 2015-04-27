@@ -2,7 +2,7 @@ package org.shopfoundry.core.service.handler;
 
 import java.io.Serializable;
 
-import org.shopfoundry.core.service.ServiceContext;
+import org.shopfoundry.core.service.context.ServiceContext;
 
 /**
  * Inbound message handler interface.

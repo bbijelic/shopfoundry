@@ -1,7 +1,13 @@
 package org.shopfoundry.core.service;
 
+import org.shopfoundry.core.service.context.ContextualService;
+import org.shopfoundry.core.service.context.ServiceContext;
+import org.shopfoundry.core.service.context.ServiceContextException;
 import org.shopfoundry.core.service.fsm.ServiceStateMachine;
+import org.shopfoundry.core.service.fsm.ServiceStateMachineException;
 import org.shopfoundry.core.service.fsm.StatefulService;
+import org.shopfoundry.core.service.fsm.state.AllowedState;
+import org.shopfoundry.core.service.info.ServiceInfoProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -22,6 +28,16 @@ public class DefaultService implements Service, ContextualService,
 			.getLogger(DefaultService.class);
 
 	/**
+	 * Service configuration XML file. Must be in classpath.
+	 */
+	private final static String ServiceConfigurationXml = "ServiceConfiguration.xml";
+
+	/**
+	 * Service bean name.
+	 */
+	private final static String ServiceBeanName = "Service";
+
+	/**
 	 * Main method.
 	 * 
 	 * @param args
@@ -31,21 +47,56 @@ public class DefaultService implements Service, ContextualService,
 
 		// Load application context from classpath
 		ApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-				"ServiceConfiguration.xml");
+				ServiceConfigurationXml);
 
 		// Make instance and start email dispatcher service
-		Service service = (Service) applicationContext.getBean("Service");
+		Service service = (Service) applicationContext.getBean(ServiceBeanName);
 
 		try {
 			// Start service
 			service.start();
 
-		} catch (Exception e) {
+		} catch (ServiceException e) {
 			if (logger.isErrorEnabled())
-				logger.error("Servic failed to strart: " + e.getMessage(), e);
+				logger.error("Service failed to strart: " + e.getMessage(), e);
 
+			// Exit
+			System.exit(-1);
 		}
 
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param serviceContext
+	 * @param serviceStateMachine
+	 */
+	public DefaultService(ServiceContext serviceContext,
+			ServiceStateMachine serviceStateMachine) {
+		this.serviceContext = serviceContext;
+		this.serviceStateMachine = serviceStateMachine;
+	}
+
+	@Override
+	public void start() throws ServiceException {
+
+		try {
+
+			if (logger.isInfoEnabled())
+				logger.info("Starting service [ Service group: {} ]",
+						serviceContext.getServiceInfoProvider()
+								.getServiceGroup());
+
+			// Start state machine
+			getServiceStateMachine().changeState(AllowedState.STARTING);
+
+		} catch (ServiceStateMachineException | ServiceInfoProviderException e) {
+			if (logger.isErrorEnabled())
+				logger.error(e.getMessage(), e);
+
+			throw new ServiceException(e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -53,46 +104,15 @@ public class DefaultService implements Service, ContextualService,
 	 */
 	private ServiceContext serviceContext;
 
-	/**
-	 * Service context setter
-	 * 
-	 * @param serviceContext
-	 *            the serviceContext to set
-	 */
-	public void setServiceContext(ServiceContext serviceContext) {
-		this.serviceContext = serviceContext;
-	}
-
 	@Override
-	public ServiceContext getServiceContext() {
+	public ServiceContext getServiceContext() throws ServiceContextException {
 		return serviceContext;
-	}
-
-	@Override
-	public void start() throws Exception {
-		if (logger.isInfoEnabled())
-			logger.info("Starting service [ Service group: {} ]",
-					serviceContext.getServiceGroup());
-
-		// Start state machine
-		getServiceStateMachine().changeState(
-				getServiceStateMachine().getDefaultState());
 	}
 
 	/**
 	 * Service state machine
 	 */
 	private ServiceStateMachine serviceStateMachine;
-
-	/**
-	 * Service state machine setter.
-	 * 
-	 * @param serviceStateMachine
-	 *            the serviceStateMachine to set
-	 */
-	public void setServiceStateMachine(ServiceStateMachine serviceStateMachine) {
-		this.serviceStateMachine = serviceStateMachine;
-	}
 
 	@Override
 	public ServiceStateMachine getServiceStateMachine() {

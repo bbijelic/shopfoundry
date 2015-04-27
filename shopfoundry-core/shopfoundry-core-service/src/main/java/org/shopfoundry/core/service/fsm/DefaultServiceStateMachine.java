@@ -1,6 +1,11 @@
 package org.shopfoundry.core.service.fsm;
 
-import org.shopfoundry.core.service.ServiceContext;
+import java.util.Map;
+
+import org.shopfoundry.core.service.context.ServiceContext;
+import org.shopfoundry.core.service.fsm.state.AllowedState;
+import org.shopfoundry.core.service.fsm.state.ServiceState;
+import org.shopfoundry.core.service.fsm.state.ServiceStateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,8 +16,23 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultServiceStateMachine implements ServiceStateMachine {
 
+	/**
+	 * Logger.
+	 */
 	private static final Logger logger = LoggerFactory
 			.getLogger(DefaultServiceStateMachine.class);
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param serviceContext
+	 * @param stateMap
+	 */
+	public DefaultServiceStateMachine(ServiceContext serviceContext,
+			Map<AllowedState, ServiceState> stateMap) {
+		this.serviceContext = serviceContext;
+		this.stateMap = stateMap;
+	}
 
 	/**
 	 * Service context
@@ -26,16 +46,6 @@ public class DefaultServiceStateMachine implements ServiceStateMachine {
 	 */
 	public ServiceContext getServiceContext() {
 		return serviceContext;
-	}
-
-	/**
-	 * Service context setter.
-	 * 
-	 * @param serviceContext
-	 *            the serviceContext to set
-	 */
-	public void setServiceContext(ServiceContext serviceContext) {
-		this.serviceContext = serviceContext;
 	}
 
 	/**
@@ -54,8 +64,8 @@ public class DefaultServiceStateMachine implements ServiceStateMachine {
 	}
 
 	@Override
-	public ServiceState getCurrentState() throws Exception {
-		return currentState;
+	public ServiceState getCurrentState() {
+		return this.currentState;
 	}
 
 	/*
@@ -70,45 +80,48 @@ public class DefaultServiceStateMachine implements ServiceStateMachine {
 		builder.append(serviceContext);
 		builder.append(", currentState=");
 		builder.append(currentState);
-		builder.append(", defaultState=");
-		builder.append(defaultState);
 		builder.append("]");
 		return builder.toString();
 	}
 
 	@Override
-	public void changeState(ServiceState serviceState) throws Exception {
+	public void changeState(AllowedState nextState)
+			throws ServiceStateMachineException {
+
 		if (logger.isInfoEnabled())
 			logger.info(
 					"Changing service state [ Current: {}, Next: {} ]",
-					((currentState == null) ? "None" : currentState
-							.getStateName()), serviceState.getStateName());
+					((this.currentState == null) ? "None" : this.currentState
+							.getState()), nextState.toString());
 
 		// Set new state
-		currentState = serviceState;
+		this.currentState = getStateMapping().get(nextState);
 
-		// Handle new state
-		currentState.handle(serviceContext, this);
+		try {
+
+			// Handle new state
+			currentState.handle(serviceContext, this);
+
+		} catch (ServiceStateException e) {
+			if (logger.isErrorEnabled())
+				logger.error(e.getMessage(), e);
+
+			throw new ServiceStateMachineException(e.getMessage(), e);
+		}
 	}
 
 	/**
-	 * Default service state.
+	 * State mapping
 	 */
-	private ServiceState defaultState;
-
-	/**
-	 * Default service state setter.
-	 * 
-	 * @param defaultState
-	 *            the defaultState to set
-	 */
-	public void setDefaultState(ServiceState defaultState) {
-		this.defaultState = defaultState;
-	}
+	private Map<AllowedState, ServiceState> stateMap;
 
 	@Override
-	public ServiceState getDefaultState() throws Exception {
-		return defaultState;
+	public Map<AllowedState, ServiceState> getStateMapping()
+			throws ServiceStateMachineException {
+		if (this.stateMap == null)
+			throw new ServiceStateMachineException("State mapping not set");
+
+		return this.stateMap;
 	}
 
 }

@@ -7,7 +7,7 @@ import org.shopfoundry.core.security.certificates.CertificateManager;
  * 
  * @author Bojan Bijelic
  */
-public class DefaultSecurityManager implements SecurityManager {
+public class DefaultSecurityProvider implements SecurityProvider {
 
 	/**
 	 * Certificate manager
@@ -15,17 +15,19 @@ public class DefaultSecurityManager implements SecurityManager {
 	private CertificateManager certificateManager;
 
 	/**
-	 * Certificate manager setter
+	 * Constructor.
 	 * 
 	 * @param certificateManager
-	 *            the certificateManager to set
 	 */
-	public void setCertificateManager(CertificateManager certificateManager) {
+	public DefaultSecurityProvider(CertificateManager certificateManager) {
 		this.certificateManager = certificateManager;
 	}
 
 	@Override
-	public CertificateManager getCertificateManager() {
+	public CertificateManager getCertificateManager()
+			throws SecurityProviderException {
+		if (this.certificateManager == null)
+			throw new SecurityProviderException("Certificate manager not set.");
 		return certificateManager;
 	}
 

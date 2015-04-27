@@ -2,7 +2,7 @@ package org.shopfoundry.core.service.gateway.amqp;
 
 import java.io.IOException;
 
-import org.shopfoundry.core.service.gateway.InboundGateway;
+import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

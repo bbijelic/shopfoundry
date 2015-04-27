@@ -8,7 +8,7 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.shopfoundry.core.service.gateway.InboundGateway;
+import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

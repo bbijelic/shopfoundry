@@ -7,7 +7,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import org.apache.http.client.ClientProtocolException;
-import org.shopfoundry.core.service.gateway.OutboundGateway;
+import org.shopfoundry.core.service.gateway.outbound.OutboundGateway;
 
 /**
  * Outbound Gateway for interaction with Certificate Authority service.

@@ -4,49 +4,90 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- Certificate manager -->
-	<bean id="CertificateManager" class="org.shopfoundry.core.security.certificates.DefaultCertificateManager" />
-
-	<!-- Security manager -->
-	<bean id="SecurityManager" class="org.shopfoundry.core.security.DefaultSecurityManager">
-		<!-- Certificate Manager -->
-		<property name="certificateManager" ref="CertificateManager" />
+	<!-- Service info provider -->
+	<bean id="ServiceInfoProvider"
+		class="org.shopfoundry.core.service.info.DefaultServiceInfoProvider">
+		<!-- Service group -->
+		<constructor-arg type="java.lang.String" value="EmailService" />
+		<!-- Service version -->
+		<constructor-arg type="java.lang.String" value="0.0.1" />
 	</bean>
 
-	<!-- System specification -->
-	<bean id="SystemSpecification"
-		class="org.shopfoundry.core.service.system.DefaultSystemSpecification" />
+	<!-- Environment provider -->
+	<bean id="EnvironmentProvider"
+		class="org.shopfoundry.core.service.environment.DefaultEnvironmentProvider" />
+
+	<!-- Guid Provider -->
+	<bean id="GuidProvider" class="org.shopfoundry.core.service.guid.DefaultGuidProvider" />
+
+	<!-- Certificate Manager -->
+	<bean id="CertificateManager"
+		class="org.shopfoundry.core.security.certificates.DefaultCertificateManager" />
+
+	<!-- Security provider -->
+	<bean id="SecurityProvider" class="org.shopfoundry.core.security.DefaultSecurityProvider">
+		<constructor-arg ref="CertificateManager" />
+	</bean>
+
+	<!-- Gateway provider -->
+	<bean id="GatewayProvider"
+		class="org.shopfoundry.core.service.gateway.DefaultGatewayProvider">
+		<!-- Outbound gateways -->
+		<constructor-arg>
+			<map key-type="java.lang.String"
+				value-type="org.shopfoundry.core.service.gateway.outbound.OutboundGateway">
+			</map>
+		</constructor-arg>
+		<!-- Inbound gateways -->
+		<constructor-arg>
+			<map key-type="java.lang.String"
+				value-type="org.shopfoundry.core.service.gateway.inbound.InboundGateway">
+			</map>
+		</constructor-arg>
+	</bean>
 
 	<!-- Service context -->
-	<bean id="ServiceContext" class="org.shopfoundry.core.service.DefaultServiceContext">
-		<!-- Service group -->
-		<property name="serviceGroup" value="EmailDispatcher" />
-		<!-- Registry service endpoint -->
-		<property name="registryServiceEndpoint" value="https://192.168.1.2:8443/register" />
-		<!-- System specification -->
-		<property name="systemSpecification" ref="SystemSpecification" />
-		<!-- Security manager -->
-		<property name="securityManager" ref="SecurityManager" />
-	</bean>
-	
-	<!-- Service states -->
-	<!-- Starting state -->
-	<bean id="StartingState" class="org.shopfoundry.core.service.fsm.state.StartingState" />
-	
-	<!-- Service state machine -->
-	<bean id="ServiceStateMachine" class="org.shopfoundry.core.service.fsm.DefaultServiceStateMachine">
-		<!-- Service context -->
-		<property name="serviceContext" ref="ServiceContext" />
-		<!-- Default state -->
-		<property name="defaultState" ref="StartingState" />
+	<bean id="ServiceContext"
+		class="org.shopfoundry.core.service.context.DefaultServiceContext">
+		<constructor-arg ref="ServiceInfoProvider" />
+		<constructor-arg ref="EnvironmentProvider" />
+		<constructor-arg ref="GuidProvider" />
+		<constructor-arg ref="SecurityProvider" />
+		<constructor-arg ref="GatewayProvider" />
 	</bean>
 
-	<!-- Email dispatcher service -->
+	<!-- Service state machine -->
+	<bean id="ServiceStateMachine"
+		class="org.shopfoundry.core.service.fsm.DefaultServiceStateMachine">
+		<constructor-arg ref="ServiceContext" />
+		<!-- State mapping -->
+		<constructor-arg>
+			<map key-type="org.shopfoundry.core.service.fsm.state.AllowedState"
+				value-type="org.shopfoundry.core.service.fsm.state.ServiceState">
+				<!-- Starting state -->
+				<entry key="STARTING">
+					<bean class="org.shopfoundry.core.service.fsm.state.StartingState" />
+				</entry>
+				<!-- Configuring state -->
+				<entry key="CONFIGURING">
+					<bean class="org.shopfoundry.core.service.fsm.state.ConfiguringState" />
+				</entry>
+				<!-- Running state -->
+				<entry key="RUNNING">
+					<bean class="org.shopfoundry.core.service.fsm.state.RunningState" />
+				</entry>
+				<!-- Shutting down state -->
+				<entry key="SHUTTING_DOWN">
+					<bean class="org.shopfoundry.core.service.fsm.state.ShuttingDownState" />
+				</entry>
+			</map>
+		</constructor-arg>
+	</bean>
+
+	<!-- Service -->
 	<bean id="Service" class="org.shopfoundry.services.email.EmailDispatcherService">
-		<!-- Service context -->
-		<property name="serviceContext" ref="ServiceContext" />
-		<!-- Service state machine -->
-		<property name="serviceStateMachine" ref="ServiceStateMachine" />
+		<constructor-arg ref="ServiceContext" />
+		<constructor-arg ref="ServiceStateMachine" />
 	</bean>
 
 </beans>

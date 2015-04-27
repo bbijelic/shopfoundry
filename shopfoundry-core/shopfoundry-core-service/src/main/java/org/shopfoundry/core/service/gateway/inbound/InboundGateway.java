@@ -1,4 +1,6 @@
-package org.shopfoundry.core.service.gateway;
+package org.shopfoundry.core.service.gateway.inbound;
+
+import org.shopfoundry.core.service.gateway.Gateway;
 
 /**
  * Inbound gateway.
