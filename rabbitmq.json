@@ -1,0 +1,17 @@
+{
+	"rabbit_version":"3.5.1",
+	"users":[
+		{"name":"sfuser","password_hash":"t8vwfHpTti8I1oOq9mcDhj6n0co=","tags":""}],
+	"vhosts":[
+		{"name":"shopfoundry"},
+		{"name":"/"}],
+	"permissions":[
+		{"user":"sfuser","vhost":"shopfoundry","configure":".*","write":".*","read":".*"}],
+	"parameters":[],
+	"policies":[],
+	"queues":[],
+	"exchanges":[
+		{"name":"bus.service","vhost":"shopfoundry","type":"direct","durable":true,"auto_delete":false,"internal":false,"arguments":{}},
+		{"name":"bus.event","vhost":"shopfoundry","type":"direct","durable":false,"auto_delete":false,"internal":false,"arguments":{}}],
+	"bindings":[]
+}
