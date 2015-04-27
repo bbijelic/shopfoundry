@@ -17,11 +17,14 @@ public class ShuttingDownState implements ServiceState {
 
 	@Override
 	public void handle(ServiceContext serviceContext,
-			ServiceStateMachine serviceStateMachine) throws ServiceStateException {
+			ServiceStateMachine serviceStateMachine)
+			throws ServiceStateException {
 
 		if (logger.isInfoEnabled())
-			logger.info("Handling ShuttingDownState");
+			logger.info("Handling state {}", getState());
 
+		// Close service
+		System.exit(0);
 	}
 
 	@Override

@@ -5,7 +5,7 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import org.shopfoundry.core.security.SecurityManager;
+import org.shopfoundry.core.security.SecurityProvider;
 import org.shopfoundry.core.security.pki.rsa.RSAKeyPairGenerator;
 import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
 import org.shopfoundry.core.utils.GuidProvider;
@@ -54,7 +54,7 @@ public class RegistryService {
 	 * @param systemSpecification
 	 */
 	public RegistryService(List<InboundGateway> inboundGateways,
-			SecurityManager securityManager,
+			SecurityProvider securityManager,
 			CaServiceOutboundGateway caServiceOutboundGateway,
 			GuidProvider guidProvider) {
 
@@ -92,7 +92,7 @@ public class RegistryService {
 
 			// Certificate subject information
 			CertificateSubjectInformation csi = new CertificateSubjectInformation();
-			csi.setCommonName(systemSpecification.getHostname());
+			csi.setCommonName("localhost");
 			csi.setOrganizationalUnit(getClass().getSimpleName());
 			csi.setPublicKey(keyPair.getPublic());
 
