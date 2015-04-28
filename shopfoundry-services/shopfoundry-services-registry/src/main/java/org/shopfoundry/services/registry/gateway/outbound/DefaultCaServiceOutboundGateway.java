@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.shopfoundry.services.registry.outbound.ca;
+package org.shopfoundry.services.registry.gateway.outbound;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

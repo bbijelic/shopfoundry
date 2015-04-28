@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -13,8 +14,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.json.JSONObject;
 import org.shopfoundry.core.service.registry.dto.ServiceRegistrationResponse;
 import org.shopfoundry.services.registry.db.entity.ServiceGroup;
+import org.shopfoundry.services.registry.db.entity.ServiceGroupConfiguration;
 import org.shopfoundry.services.registry.db.repository.ServiceGroupRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,11 +36,11 @@ public class RegistrationServlet extends HttpServlet {
 	private static final String PARAM_SERVICE_GROUP = "ServiceGroup";
 	private static final String PARAM_SERVICE_VERSION = "ServiceVersion";
 	private static final String PARAM_ACTION = "Action";
+	private static final String PARAM_CSR = "CSR";
 
 	private static final String ACTION_REGISTER = "register";
 
 	private static final String CONTENT_TYPE_JSON = "application/json";
-	private static final String CONTENT_TYPE_XML = "application/xml";
 
 	/**
 	 * POST
@@ -58,13 +61,13 @@ public class RegistrationServlet extends HttpServlet {
 		// Supported content types
 		List<String> supportedResponseContentTypes = new ArrayList<String>();
 		supportedResponseContentTypes.add("application/json");
-		// supportedResponseContentTypes.add("application/xml");
 
 		// Required request parameters
 		List<String> requiredRequestParameters = new ArrayList<String>();
 		requiredRequestParameters.add(PARAM_SERVICE_GROUP);
 		requiredRequestParameters.add(PARAM_SERVICE_VERSION);
 		requiredRequestParameters.add(PARAM_ACTION);
+		requiredRequestParameters.add(PARAM_CSR);
 
 		if (validateRequest(requiredHeaders, supportedResponseContentTypes,
 				requiredRequestParameters, request)) {
@@ -72,10 +75,15 @@ public class RegistrationServlet extends HttpServlet {
 			// Set status code
 			response.setStatus(HttpServletResponse.SC_OK);
 
+			// Get Parameters
 			String action = request.getParameter(PARAM_ACTION);
 			String serviceGroup = request.getParameter(PARAM_SERVICE_GROUP);
 			String serviceVersion = request.getParameter(PARAM_SERVICE_VERSION);
+			String csr = request.getParameter(PARAM_CSR);
+			// Get headers
+			String accept = request.getHeader("Accept");
 
+			// Initialize service registration response
 			ServiceRegistrationResponse registrationResponse = new ServiceRegistrationResponse();
 
 			try {
@@ -101,10 +109,40 @@ public class RegistrationServlet extends HttpServlet {
 								serviceGUID);
 
 					// Set response content type to accepted by client
-					response.setContentType(request.getHeader("Accept"));
+					response.setContentType(accept);
+
+					// Get configurations
+					List<ServiceGroupConfiguration> configurations = serviceGroupEntity
+							.getServiceGroupConfiguration();
 
 					// Service configuration
 					Map<String, String> serviceConfiguration = new HashMap<String, String>();
+
+					// Find active configuration by detemining biggest unix time
+					if (!configurations.isEmpty()) {
+						ServiceGroupConfiguration activeConfiguration = configurations
+								.get(0);
+						for (ServiceGroupConfiguration serviceGroupConfiguration : configurations) {
+							if (serviceGroupConfiguration.getActiveFrom()
+									.getTime() > activeConfiguration
+									.getActiveFrom().getTime()) {
+								activeConfiguration = serviceGroupConfiguration;
+							}
+						}
+
+						// Convert JSON string to map
+						String configurationData = activeConfiguration
+								.getConfigurationData();
+						JSONObject jsonObject = new JSONObject(
+								configurationData);
+						Iterator<String> iterator = jsonObject.keys();
+						while (iterator.hasNext()) {
+							String key = iterator.next();
+							serviceConfiguration.put(key,
+									jsonObject.getString(key));
+						}
+
+					}
 
 					registrationResponse.setServiceGiud(serviceGUID);
 					registrationResponse.setTransactionId(transactionID);

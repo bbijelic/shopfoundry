@@ -1,4 +1,4 @@
-package org.shopfoundry.services.registry.outbound.ca;
+package org.shopfoundry.services.registry.gateway.outbound;
 
 import java.security.PublicKey;
 

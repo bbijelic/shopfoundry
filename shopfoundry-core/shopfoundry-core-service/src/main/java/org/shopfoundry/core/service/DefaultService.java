@@ -58,7 +58,7 @@ public class DefaultService implements Service, ContextualService,
 
 		} catch (ServiceException e) {
 			if (logger.isErrorEnabled())
-				logger.error("Service failed to strart: " + e.getMessage(), e);
+				logger.error("Service failed to start: {}", e.getMessage());
 
 			// Exit
 			System.exit(-1);
