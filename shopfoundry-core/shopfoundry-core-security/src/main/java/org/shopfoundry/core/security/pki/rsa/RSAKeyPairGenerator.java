@@ -22,6 +22,11 @@ public class RSAKeyPairGenerator {
 			.getLogger(RSAKeyPairGenerator.class);
 
 	/**
+	 * Key size contant for 2048 key size
+	 */
+	public final static int KEY_SIZE_2048 = 2048;
+	
+	/**
 	 * Generates RSA key pair
 	 * 
 	 * @param keySize

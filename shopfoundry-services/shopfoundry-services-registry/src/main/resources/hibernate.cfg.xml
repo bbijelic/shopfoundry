@@ -43,6 +43,7 @@
 		<!-- Entities -->
 		<mapping class="org.shopfoundry.services.registry.db.entity.ServiceGroup" />
 		<mapping class="org.shopfoundry.services.registry.db.entity.ServiceGroupConfiguration" />
+		<mapping class="org.shopfoundry.services.registry.db.entity.ServiceGroupConfigurationKeyValuePair" />
 
 	</session-factory>
 </hibernate-configuration>

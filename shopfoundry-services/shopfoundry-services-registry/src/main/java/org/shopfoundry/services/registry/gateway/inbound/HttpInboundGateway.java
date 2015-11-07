@@ -8,12 +8,12 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.shopfoundry.core.security.SecurityProvider;
 import org.shopfoundry.core.security.SecurityProviderException;
 import org.shopfoundry.core.security.certificates.CertificateManagerException;
+import org.shopfoundry.core.service.context.ServiceContext;
 import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
-import org.shopfoundry.core.service.info.ServiceInfoProvider;
 import org.shopfoundry.core.service.info.ServiceInfoProviderException;
 import org.shopfoundry.services.registry.servlet.RegistrationServlet;
 import org.slf4j.Logger;
@@ -26,27 +26,39 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpInboundGateway implements InboundGateway {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(HttpInboundGateway.class);
+	private static final Logger logger = LoggerFactory.getLogger(HttpInboundGateway.class);
 
 	/**
 	 * Http(s) Server
 	 */
 	private Server httpServer;
 
-	private SecurityProvider securityProvider;
-	private ServiceInfoProvider serviceInfoProvider;
+	private ServiceContext serviceContext;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param securityProvider
-	 * @param serviceInfoProvider
+	 * @param serviceContext
 	 */
-	public HttpInboundGateway(SecurityProvider securityProvider,
-			ServiceInfoProvider serviceInfoProvider) {
-		this.securityProvider = securityProvider;
-		this.serviceInfoProvider = serviceInfoProvider;
+	public HttpInboundGateway(ServiceContext serviceContext) {
+		this.serviceContext = serviceContext;
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 */
+	public HttpInboundGateway() {
+
+	}
+
+	/**
+	 * Service context setter.
+	 * 
+	 * @param serviceContext
+	 */
+	public void setServiceContext(ServiceContext serviceContext) {
+		this.serviceContext = serviceContext;
 	}
 
 	@Override
@@ -66,22 +78,20 @@ public class HttpInboundGateway implements InboundGateway {
 		try {
 
 			// Set trusted certificates
-			sslContextFactory.setTrustStore(securityProvider
-					.getCertificateManager().getTrustedCerticiates());
+			sslContextFactory.setTrustStore(
+					serviceContext.getSecurityProvider().getCertificateManager().getTrustedCerticiates());
 
 			// Set key store
-			sslContextFactory.setKeyStore(securityProvider
-					.getCertificateManager().getEndEntityCertificates());
+			sslContextFactory.setKeyStore(
+					serviceContext.getSecurityProvider().getCertificateManager().getEndEntityCertificates());
 
 			// Set key store type
 			sslContextFactory.setKeyStoreType("PKCS12");
 
 			// Set key store password
-			sslContextFactory.setKeyStorePassword(serviceInfoProvider
-					.getServiceGroup());
+			sslContextFactory.setKeyStorePassword(serviceContext.getServiceInfoProvider().getServiceGroup());
 
-		} catch (CertificateManagerException | SecurityProviderException
-				| ServiceInfoProviderException e) {
+		} catch (CertificateManagerException | SecurityProviderException | ServiceInfoProviderException e) {
 			if (logger.isErrorEnabled())
 				logger.error(e.getMessage(), e);
 		}
@@ -91,8 +101,7 @@ public class HttpInboundGateway implements InboundGateway {
 		httpsConfig.addCustomizer(new SecureRequestCustomizer());
 
 		// HTTPS connector
-		ServerConnector https = new ServerConnector(httpServer,
-				new SslConnectionFactory(sslContextFactory, "http/1.1"),
+		ServerConnector https = new ServerConnector(httpServer, new SslConnectionFactory(sslContextFactory, "http/1.1"),
 				new HttpConnectionFactory(httpsConfig));
 		https.setPort(8443);
 
@@ -103,8 +112,10 @@ public class HttpInboundGateway implements InboundGateway {
 		ServletContextHandler context = new ServletContextHandler();
 		httpServer.setHandler(context);
 
+		// Servlet holder
+		ServletHolder servletHolder = new ServletHolder(new RegistrationServlet(serviceContext));
 		// Add servlet to the context
-		context.addServlet(RegistrationServlet.class, "/register");
+		context.addServlet(servletHolder, "/register");
 
 		// Start server
 		httpServer.start();

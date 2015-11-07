@@ -1,12 +1,13 @@
 package org.shopfoundry.services.registry.servlet;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.cert.Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
@@ -14,13 +15,20 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.json.JSONObject;
-import org.shopfoundry.core.service.registry.dto.ServiceRegistrationResponse;
+import org.apache.commons.codec.binary.Base64;
+import org.shopfoundry.core.service.context.ServiceContext;
+import org.shopfoundry.core.service.registry.dto.Request;
+import org.shopfoundry.core.service.registry.dto.Response;
 import org.shopfoundry.services.registry.db.entity.ServiceGroup;
 import org.shopfoundry.services.registry.db.entity.ServiceGroupConfiguration;
 import org.shopfoundry.services.registry.db.repository.ServiceGroupRepository;
+import org.shopfoundry.services.registry.gateway.outbound.CaServiceOutboundGateway;
+import org.shopfoundry.services.registry.gateway.outbound.CertificateSubjectInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.io.xml.StaxDriver;
 
 /**
  * AutoconfigServlet
@@ -33,14 +41,41 @@ public class RegistrationServlet extends HttpServlet {
 	private static final Logger logger = LoggerFactory
 			.getLogger(RegistrationServlet.class);
 
-	private static final String PARAM_SERVICE_GROUP = "ServiceGroup";
-	private static final String PARAM_SERVICE_VERSION = "ServiceVersion";
-	private static final String PARAM_ACTION = "Action";
-	private static final String PARAM_CSR = "CSR";
+	/**
+	 * Service context
+	 */
+	private ServiceContext serviceContext;
 
-	private static final String ACTION_REGISTER = "register";
+	/**
+	 * Constructor.
+	 * 
+	 * @param serviceContext
+	 */
+	public RegistrationServlet(ServiceContext serviceContext) {
+		this.serviceContext = serviceContext;
+	}
 
-	private static final String CONTENT_TYPE_JSON = "application/json";
+	/**
+	 * Decodes public key from base64 into the PublicKey instance.
+	 * 
+	 * @param publicKey
+	 * @return the public key object
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeySpecException
+	 */
+	private PublicKey decodePublicKey(String publicKey)
+			throws NoSuchAlgorithmException, InvalidKeySpecException {
+		// Requestor public key
+		byte[] publicKeyByteArray = Base64.decodeBase64(publicKey);
+
+		// Recreating public key from base64
+		X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(
+				publicKeyByteArray);
+
+		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+		PublicKey servicePublicKey = keyFactory.generatePublic(publicKeySpec);
+		return servicePublicKey;
+	}
 
 	/**
 	 * POST
@@ -51,213 +86,124 @@ public class RegistrationServlet extends HttpServlet {
 		if (logger.isTraceEnabled())
 			logger.trace(request.toString());
 
+		// XML marshaller/unmarshaller
+		XStream xstream = new XStream(new StaxDriver());
+		xstream.processAnnotations(Request.class);
+
+		// Unmarshal request
+		Request registrationRequest = (Request) xstream.fromXML(request
+				.getInputStream());
+
 		// Initialize repository
 		ServiceGroupRepository serviceGroupRepository = new ServiceGroupRepository();
 
-		List<String> requiredHeaders = new ArrayList<String>();
-		requiredHeaders.add("Accept");
-		requiredHeaders.add("Content-Type");
+		// Set status code
+		response.setStatus(HttpServletResponse.SC_OK);
 
-		// Supported content types
-		List<String> supportedResponseContentTypes = new ArrayList<String>();
-		supportedResponseContentTypes.add("application/json");
+		// Initialize service registration response
+		Response registrationResponse = new Response();
 
-		// Required request parameters
-		List<String> requiredRequestParameters = new ArrayList<String>();
-		requiredRequestParameters.add(PARAM_SERVICE_GROUP);
-		requiredRequestParameters.add(PARAM_SERVICE_VERSION);
-		requiredRequestParameters.add(PARAM_ACTION);
-		requiredRequestParameters.add(PARAM_CSR);
+		try {
 
-		if (validateRequest(requiredHeaders, supportedResponseContentTypes,
-				requiredRequestParameters, request)) {
+			// Try to find service configuration by service group name and
+			// version
+			ServiceGroup serviceGroupEntity = serviceGroupRepository
+					.findByNameAndVersion(
+							registrationRequest.getServiceGroup(),
+							registrationRequest.getServiceVersion());
 
-			// Set status code
-			response.setStatus(HttpServletResponse.SC_OK);
+			// Generated service GUI
+			String serviceGUID = UUID.randomUUID().toString();
 
-			// Get Parameters
-			String action = request.getParameter(PARAM_ACTION);
-			String serviceGroup = request.getParameter(PARAM_SERVICE_GROUP);
-			String serviceVersion = request.getParameter(PARAM_SERVICE_VERSION);
-			String csr = request.getParameter(PARAM_CSR);
-			// Get headers
-			String accept = request.getHeader("Accept");
+			// Set service guid to the response
+			registrationResponse.setServiceGiud(serviceGUID);
 
-			// Initialize service registration response
-			ServiceRegistrationResponse registrationResponse = new ServiceRegistrationResponse();
+			// Service common name for the certificate
+			String serviceCommonName = String.format("%s.%s", serviceGUID,
+					registrationRequest.getServiceGroup());
 
-			try {
+			// Get public key
+			PublicKey publicKey = decodePublicKey(registrationRequest
+					.getCertificatePublicKey());
 
-				// Try to find service configuration by service group name and
-				// version
-				ServiceGroup serviceGroupEntity = serviceGroupRepository
-						.findByNameAndVersion(serviceGroup, serviceVersion);
+			// Certificate subject information
+			CertificateSubjectInformation csi = new CertificateSubjectInformation();
+			csi.setCommonName(serviceCommonName);
+			csi.setOrganizationalUnit(registrationRequest.getServiceGroup());
+			csi.setPublicKey(publicKey);
 
-				// Registering service
-				if (action.equalsIgnoreCase(ACTION_REGISTER)) {
+			// Get Certificate Authority outbound gateway
+			CaServiceOutboundGateway caOutboundGateway = (CaServiceOutboundGateway) serviceContext
+					.getGatewayProvider().getOutboundGateways()
+					.get("CertificateAuthority");
 
-					// Transaction ID
-					String transactionID = UUID.randomUUID().toString();
+			// Send certificate signing request to the Certificate Authority
+			Certificate serviceCertificate = caOutboundGateway
+					.requestCertificateSign(csi);
 
-					// Generated service GUI
-					String serviceGUID = UUID.randomUUID().toString();
+			String signedCertificateBase64 = Base64
+					.encodeBase64String(serviceCertificate.getEncoded());
 
-					if (logger.isInfoEnabled())
-						logger.info(
-								"[Transaction: {}] Registering service from service group '{}' version '{}' with GUID '{}'",
-								transactionID, serviceGroup, serviceVersion,
-								serviceGUID);
+			// Set signed certificate to the response
+			registrationResponse.setCertificate(signedCertificateBase64);
 
-					// Set response content type to accepted by client
-					response.setContentType(accept);
+			if (logger.isInfoEnabled())
+				logger.info(
+						"Registering service from service group '{}' version '{}' with GUID '{}'",
+						registrationRequest.getServiceGroup(),
+						registrationRequest.getServiceVersion(), serviceGUID);
 
-					// Get configurations
-					List<ServiceGroupConfiguration> configurations = serviceGroupEntity
-							.getServiceGroupConfiguration();
+			// Set response content type to accepted by client
+			response.setContentType("application/xml");
 
-					// Service configuration
-					Map<String, String> serviceConfiguration = new HashMap<String, String>();
+			// Get configurations
+			List<ServiceGroupConfiguration> configurations = serviceGroupEntity
+					.getServiceGroupConfiguration();
 
-					// Find active configuration by detemining biggest unix time
-					if (!configurations.isEmpty()) {
-						ServiceGroupConfiguration activeConfiguration = configurations
-								.get(0);
-						for (ServiceGroupConfiguration serviceGroupConfiguration : configurations) {
-							if (serviceGroupConfiguration.getActiveFrom()
-									.getTime() > activeConfiguration
-									.getActiveFrom().getTime()) {
-								activeConfiguration = serviceGroupConfiguration;
-							}
-						}
+			// Service group configuration
+			ServiceGroupConfiguration activeConfiguration;
 
-						// Convert JSON string to map
-						String configurationData = activeConfiguration
-								.getConfigurationData();
-						JSONObject jsonObject = new JSONObject(
-								configurationData);
-						Iterator<String> iterator = jsonObject.keys();
-						while (iterator.hasNext()) {
-							String key = iterator.next();
-							serviceConfiguration.put(key,
-									jsonObject.getString(key));
-						}
-
+			// Find active configuration by detemining biggest unix time
+			if (!configurations.isEmpty()) {
+				activeConfiguration = configurations.get(0);
+				for (ServiceGroupConfiguration serviceGroupConfiguration : configurations) {
+					if (serviceGroupConfiguration.getActiveFrom().getTime() > activeConfiguration
+							.getActiveFrom().getTime()) {
+						activeConfiguration = serviceGroupConfiguration;
 					}
-
-					registrationResponse.setServiceGiud(serviceGUID);
-					registrationResponse.setTransactionId(transactionID);
-					registrationResponse
-							.setServiceConfiguration(serviceConfiguration);
-
-					if (logger.isDebugEnabled())
-						logger.debug(registrationResponse.toString());
-
-				} else {
-					if (logger.isErrorEnabled())
-						logger.error("Action '{}' is not implemented", action);
-					response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
 				}
-
-			} catch (Exception e) {
-				if (logger.isErrorEnabled())
-					logger.error(e.getMessage(), e);
-
-				// Set status code
-				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-
-			} finally {
-
-				// Allways return this values
-				registrationResponse.setServiceGroup(serviceGroup);
-				registrationResponse.setServiceVersion(serviceVersion);
-
-				// Handle JSON response
-				if (request.getHeader("Accept").equalsIgnoreCase(
-						CONTENT_TYPE_JSON)) {
-					// Encode to JSON and write
-					response.getWriter().print(registrationResponse.toJSON());
-				}
-
 			}
 
-		} else {
-			if (logger.isErrorEnabled())
-				logger.error("Request is not valid");
-			response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
-		}
+			// CA chain
+			String caChain = serviceContext.getSecurityProvider()
+					.getCertificateManager().exportTrustedCertificates();
+			String caChainBase64 = Base64
+					.encodeBase64String(caChain.getBytes());
 
-	}
-
-	/**
-	 * Validates request
-	 * 
-	 * @param requiredHeaders
-	 * @param supportedContentTypes
-	 * @param request
-	 * @return true if request is valid, false otherwise
-	 */
-	private boolean validateRequest(List<String> requiredHeaders,
-			List<String> supportedContentTypes,
-			List<String> requiredRequestParameters, HttpServletRequest request) {
-
-		List<String> requestHeadersNames = Collections.list(request
-				.getHeaderNames());
-
-		// Validating headers
-		for (String requiredHeader : requiredHeaders) {
-			if (!requestHeadersNames.contains(requiredHeader)) {
-				if (logger.isErrorEnabled())
-					logger.error(
-							"Header '{}' is required but is not contained within request",
-							requiredHeader);
-
-				return false;
-			}
+			// Set CA chain to registration response
+			registrationResponse.setCertificateAuthorityChain(caChainBase64);
 
 			if (logger.isDebugEnabled())
-				logger.debug("Required header '{}' found: '{}'",
-						requiredHeader, request.getHeader(requiredHeader));
+				logger.debug(registrationResponse.toString());
 
-			// Validate 'accept' header
-			if (requiredHeader.equalsIgnoreCase("accept")
-					&& !supportedContentTypes.contains(request
-							.getHeader(requiredHeader))) {
-				if (logger.isErrorEnabled())
-					logger.error(
-							"Header '{}' supports only following values: {}",
-							requiredHeader, supportedContentTypes);
+		} catch (Exception e) {
+			if (logger.isErrorEnabled())
+				logger.error(e.getMessage(), e);
 
-				return false;
+			// Set status code
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
-			}
+		} finally {
 
-			// Validate 'content-type' header
-			if (requiredHeader.equalsIgnoreCase("content-type")
-					&& !request.getHeader(requiredHeader).equalsIgnoreCase(
-							"application/x-www-form-urlencoded")) {
-				if (logger.isErrorEnabled())
-					logger.error("Request content type must be 'application/x-www-form-urlencoded'");
+			// Allways return this values
+			registrationResponse.setServiceGroup(registrationRequest
+					.getServiceGroup());
+			registrationResponse.setServiceVersion(registrationRequest
+					.getServiceVersion());
 
-				return false;
-			}
-
+			// Marshall to XML
+			response.getWriter().print(xstream.toXML(registrationResponse));
 		}
 
-		// Validate request parameters
-		List<String> requestParameters = Collections.list(request
-				.getParameterNames());
-
-		for (String requiredParameter : requiredRequestParameters) {
-			if (!requestParameters.contains(requiredParameter)) {
-				if (logger.isErrorEnabled())
-					logger.error(
-							"Request parameter '{}' is required but is not contained within request",
-							requiredParameter);
-
-				return false;
-			}
-		}
-
-		return true;
 	}
 }

@@ -3,42 +3,20 @@ package org.shopfoundry.core.service.registry.dto;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONObject;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Service registration response.
  * 
  * @author Bojan Bijelic
  */
-public class ServiceRegistrationResponse {
-
-	/**
-	 * Transaction ID
-	 */
-	private String transactionId;
-
-	/**
-	 * Transaction ID getter.
-	 * 
-	 * @return the transactionId
-	 */
-	public String getTransactionId() {
-		return transactionId;
-	}
-
-	/**
-	 * Transaction ID setter.
-	 * 
-	 * @param transactionId
-	 *            the transactionId to set
-	 */
-	public void setTransactionId(String transactionId) {
-		this.transactionId = transactionId;
-	}
+@XStreamAlias("RegistrationResult")
+public class Response {
 
 	/**
 	 * Service GUID
 	 */
+	@XStreamAlias("ServiceGuid")
 	private String serviceGiud;
 
 	/**
@@ -63,6 +41,7 @@ public class ServiceRegistrationResponse {
 	/**
 	 * Service configuration
 	 */
+	@XStreamAlias("Configuration")
 	public Map<String, String> serviceConfiguration = new HashMap<String, String>();
 
 	/**
@@ -87,6 +66,7 @@ public class ServiceRegistrationResponse {
 	/**
 	 * Service group
 	 */
+	@XStreamAlias("ServiceGroup")
 	private String serviceGroup;
 
 	/**
@@ -111,6 +91,7 @@ public class ServiceRegistrationResponse {
 	/**
 	 * Service version
 	 */
+	@XStreamAlias("ServiceVersion")
 	private String serviceVersion;
 
 	/**
@@ -132,36 +113,61 @@ public class ServiceRegistrationResponse {
 		this.serviceVersion = serviceVersion;
 	}
 
-	public String toJSON() {
-		JSONObject jsonObject = new JSONObject();
-		jsonObject.accumulate("TransactionID", transactionId);
-		jsonObject.accumulate("ServiceGroup", serviceGroup);
-		jsonObject.accumulate("ServiceVersion", serviceVersion);
-		jsonObject.accumulate("ServiceGUID", serviceGiud);
-		jsonObject.accumulate("ServiceConfiguration", serviceConfiguration);
-		return jsonObject.toString();
+	/**
+	 * Signed certificate. Base64.
+	 */
+	@XStreamAlias("Certificate")
+	private String certificate;
+
+	/**
+	 * Signed certificate getter.
+	 * 
+	 * @return the signed certificate base64 encoded.
+	 */
+	public String getCertificate() {
+		return certificate;
 	}
 
-	/*
-	 * (non-Javadoc)
+	/**
+	 * Signed certificate setter.
 	 * 
-	 * @see java.lang.Object#toString()
+	 * @param certificate
 	 */
+	public void setCertificate(String certificate) {
+		this.certificate = certificate;
+	}
+
+	/**
+	 * Certificate authority chain.
+	 */
+	@XStreamAlias("CertificateAuthorityChain")
+	private String certificateAuthorityChain;
+
+	/**
+	 * Certificate authority chain getter.
+	 * 
+	 * @return the certificate authority chain.
+	 */
+	public String getCertificateAuthorityChain() {
+		return certificateAuthorityChain;
+	}
+
+	/**
+	 * Certificate authority chain settter.
+	 * 
+	 * @param certificateAuthorityChain
+	 */
+	public void setCertificateAuthorityChain(String certificateAuthorityChain) {
+		this.certificateAuthorityChain = certificateAuthorityChain;
+	}
+
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("ServiceRegistrationResponse [transactionId=");
-		builder.append(transactionId);
-		builder.append(", serviceGiud=");
-		builder.append(serviceGiud);
-		builder.append(", serviceConfiguration=");
-		builder.append(serviceConfiguration);
-		builder.append(", serviceGroup=");
-		builder.append(serviceGroup);
-		builder.append(", serviceVersion=");
-		builder.append(serviceVersion);
-		builder.append("]");
-		return builder.toString();
+		return "ServiceRegistrationResponse [serviceGiud=" + serviceGiud
+				+ ", serviceConfiguration=" + serviceConfiguration
+				+ ", serviceGroup=" + serviceGroup + ", serviceVersion="
+				+ serviceVersion + ", certificate=" + certificate
+				+ ", certificateAuthorityChain=" + certificateAuthorityChain
+				+ "]";
 	}
-
 }

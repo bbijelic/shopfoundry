@@ -12,7 +12,8 @@ import org.shopfoundry.core.service.context.ServiceContextException;
 import org.shopfoundry.core.service.fsm.ServiceStateMachine;
 import org.shopfoundry.core.service.fsm.ServiceStateMachineException;
 import org.shopfoundry.core.service.gateway.GatewayException;
-import org.shopfoundry.core.service.gateway.outbound.OutboundGateway;
+import org.shopfoundry.core.service.gateway.outbound.registry.RegistryOutboundGateway;
+import org.shopfoundry.core.service.info.ServiceInfoProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,12 +24,10 @@ import org.slf4j.LoggerFactory;
  */
 public class StartingState implements ServiceState {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(StartingState.class);
+	private static final Logger logger = LoggerFactory.getLogger(StartingState.class);
 
 	@Override
-	public void handle(ServiceContext serviceContext,
-			ServiceStateMachine serviceStateMachine)
+	public void handle(ServiceContext serviceContext, ServiceStateMachine serviceStateMachine)
 			throws ServiceStateException {
 
 		if (logger.isInfoEnabled())
@@ -42,8 +41,8 @@ public class StartingState implements ServiceState {
 			// Proceed to the Configuration state
 			serviceStateMachine.changeState(AllowedState.CONFIGURING);
 
-		} catch (ServiceStateMachineException | GatewayException
-				| ServiceContextException e) {
+		} catch (ServiceStateMachineException | GatewayException | ServiceContextException | NoSuchAlgorithmException
+				| ServiceInfoProviderException e) {
 			if (logger.isErrorEnabled())
 				logger.error(e.getMessage(), e);
 
@@ -62,19 +61,34 @@ public class StartingState implements ServiceState {
 	 * @throws IOException
 	 * @throws KeyManagementException
 	 * @throws NoSuchAlgorithmException
+	 * @throws ServiceInfoProviderException
+	 * @throws ServiceStateException 
 	 * @throws KeyStoreException
 	 * @throws CertificateException
 	 */
 	private void registerService(ServiceContext serviceContext)
-			throws GatewayException, ServiceContextException {
+			throws GatewayException, ServiceContextException, NoSuchAlgorithmException, ServiceInfoProviderException, ServiceStateException {
 		if (logger.isInfoEnabled())
 			logger.info("Registering service");
 
-		@SuppressWarnings("unused")
-		OutboundGateway registryServiceGateway = serviceContext
-				.getGatewayProvider().getOutboundGateways()
-				.get("RegistryService");
+		try {
 
+			// Get instance of Registry Service outbound gateway
+			RegistryOutboundGateway registryOutboundGateway = (RegistryOutboundGateway) serviceContext
+					.getGatewayProvider().getOutboundGateways().get("RegistryService");
+
+			// Stat registry service outbound gateway
+			registryOutboundGateway.start();
+			
+			// Performs registration
+			registryOutboundGateway.register();
+
+		} catch (Exception e) {
+			if (logger.isErrorEnabled())
+				logger.error(e.getMessage(), e);
+
+			throw new ServiceStateException(e.getMessage(), e);
+		}
 	}
 
 	@Override

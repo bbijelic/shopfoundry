@@ -24,4 +24,13 @@ public class OutboundGatewayException extends GatewayException {
 		super(message, e);
 	}
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param message
+	 */
+	public OutboundGatewayException(String message) {
+		super(message);
+	}
+
 }

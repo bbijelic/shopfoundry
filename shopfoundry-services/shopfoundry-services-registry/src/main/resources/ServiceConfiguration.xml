@@ -63,8 +63,7 @@
 	<!-- Inbound Http Gateway -->
 	<bean id="InboundHttpGateway"
 		class="org.shopfoundry.services.registry.gateway.inbound.HttpInboundGateway">
-		<constructor-arg ref="SecurityProvider" />
-		<constructor-arg ref="ServiceInfoProvider" />
+		<property name="serviceContext" ref="ServiceContext" />
 	</bean>
 
 	<!-- Gateway provider -->

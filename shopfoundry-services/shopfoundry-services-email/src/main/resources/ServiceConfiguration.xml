@@ -29,6 +29,21 @@
 		<constructor-arg ref="CertificateManager" />
 	</bean>
 
+	<!-- Service Registry Outbound Gateway -->
+	<bean id="RegistryServiceOutboundGateway"
+		class="org.shopfoundry.core.service.gateway.outbound.registry.DefaultRegistryOutboundGateway">
+		<!-- Service Information Provider -->
+		<constructor-arg ref="ServiceInfoProvider" />
+		<!-- Security Manager provider -->
+		<constructor-arg ref="SecurityProvider" />
+		<!-- Registration Service URL -->
+		<constructor-arg>
+			<bean id="RegistryServiceUrl" class="java.lang.String">
+				<constructor-arg value="https://dev.frostbite:8443/register" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
 	<!-- Gateway provider -->
 	<bean id="GatewayProvider"
 		class="org.shopfoundry.core.service.gateway.DefaultGatewayProvider">
@@ -36,6 +51,7 @@
 		<constructor-arg>
 			<map key-type="java.lang.String"
 				value-type="org.shopfoundry.core.service.gateway.outbound.OutboundGateway">
+				<entry key="RegistryService" value-ref="RegistryServiceOutboundGateway" />
 			</map>
 		</constructor-arg>
 		<!-- Inbound gateways -->

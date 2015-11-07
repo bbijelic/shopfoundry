@@ -30,6 +30,15 @@ public interface CertificateManager {
 			throws CertificateManagerException;
 
 	/**
+	 * Exports trusted certificates.
+	 * 
+	 * @return the PEM encoded trusted certificates chain
+	 * @throws CertificateManagerException
+	 */
+	public String exportTrustedCertificates()
+			throws CertificateManagerException;
+
+	/**
 	 * Returns end entity certificates key store (PKCS12).
 	 * 
 	 * @return the end entity certificates key store

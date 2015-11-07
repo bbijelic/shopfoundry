@@ -1,13 +1,16 @@
 package org.shopfoundry.core.security.certificates;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import org.bouncycastle.openssl.PEMWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +84,7 @@ public class DefaultCertificateManager implements CertificateManager {
 			throws CertificateManagerException {
 
 		// Add certificate chain to the trust store
+		int alias = 0;
 		for (X509Certificate x509Certificate : trustedCertificates) {
 
 			if (logger.isInfoEnabled())
@@ -88,9 +92,12 @@ public class DefaultCertificateManager implements CertificateManager {
 						x509Certificate.getSubjectDN().toString());
 
 			try {
+
+				// Import certificate
 				getTrustedCerticiates().setCertificateEntry(
-						x509Certificate.getSubjectDN().toString(),
-						x509Certificate);
+						Integer.toString(alias), x509Certificate);
+				alias++;
+
 			} catch (KeyStoreException e) {
 				if (logger.isErrorEnabled())
 					logger.error(e.getMessage(), e);
@@ -99,6 +106,34 @@ public class DefaultCertificateManager implements CertificateManager {
 			}
 		}
 
+	}
+
+	@Override
+	public String exportTrustedCertificates()
+			throws CertificateManagerException {
+
+		// String writter
+		StringWriter stringWritter = new StringWriter();
+
+		try {
+
+			// Bouncy castle PEM writter
+			@SuppressWarnings("resource")
+			PEMWriter pemWritter = new PEMWriter(stringWritter);
+			for (int i = 0; i < getTrustedCerticiates().size(); i++) {
+				Certificate certificate = getTrustedCerticiates()
+						.getCertificate(Integer.toString(i));
+				pemWritter.writeObject(certificate);
+			}
+
+		} catch (KeyStoreException | IOException e) {
+			if (logger.isErrorEnabled())
+				logger.error(e.getMessage(), e);
+
+			throw new CertificateManagerException(e.getMessage(), e);
+		}
+		// Return PEM encoded chain
+		return stringWritter.toString();
 	}
 
 }

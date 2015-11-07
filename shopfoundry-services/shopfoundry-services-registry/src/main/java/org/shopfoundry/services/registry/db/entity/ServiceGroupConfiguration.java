@@ -1,15 +1,22 @@
 package org.shopfoundry.services.registry.db.entity;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 /**
  * Service group configuration.
@@ -72,33 +79,17 @@ public class ServiceGroupConfiguration {
 	}
 
 	/**
-	 * Configuration data
+	 * Configuration.
 	 */
-	@Column(name = "configuration_data")
-	private String configurationData;
-
-	/**
-	 * Configuration data getter.
-	 * 
-	 * @return the configuration data
-	 */
-	public String getConfigurationData() {
-		return configurationData;
-	}
-
-	/**
-	 * Configuration data setter
-	 * 
-	 * @param configurationData
-	 */
-	public void setConfigurationData(String configurationData) {
-		this.configurationData = configurationData;
-	}
+	@OneToMany()
+	@LazyCollection(LazyCollectionOption.FALSE)
+	@JoinColumn(name = "configuration")
+	private List<ServiceGroupConfigurationKeyValuePair> configuration = new ArrayList<ServiceGroupConfigurationKeyValuePair>();
 
 	@Override
 	public String toString() {
 		return "ServiceGroupConfiguration [id=" + id + ", activeFrom="
-				+ activeFrom + ", configurationData=" + configurationData + "]";
+				+ activeFrom + ", configuration=" + configuration + "]";
 	}
 
 }
