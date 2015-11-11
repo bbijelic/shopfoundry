@@ -39,7 +39,7 @@
 		<!-- Registration Service URL -->
 		<constructor-arg>
 			<bean id="RegistryServiceUrl" class="java.lang.String">
-				<constructor-arg value="https://dev.frostbite:8443/register" />
+				<constructor-arg value="https://localhost:8443/register" />
 			</bean>
 		</constructor-arg>
 	</bean>

@@ -23,8 +23,7 @@ import org.slf4j.LoggerFactory;
  */
 public class StartingState implements ServiceState {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(StartingState.class);
+	private static final Logger logger = LoggerFactory.getLogger(StartingState.class);
 
 	@Override
 	public AllowedState getState() {
@@ -32,64 +31,56 @@ public class StartingState implements ServiceState {
 	}
 
 	@Override
-	public void handle(ServiceContext serviceContext,
-			ServiceStateMachine serviceStateMachine)
+	public void handle(ServiceContext serviceContext, ServiceStateMachine serviceStateMachine)
 			throws ServiceStateException {
 
 		try {
 
 			// Get Certificate Authority outbound gateway
-			CaServiceOutboundGateway caOutboundGateway = (CaServiceOutboundGateway) serviceContext
-					.getGatewayProvider().getOutboundGateways()
-					.get("CertificateAuthority");
+			CaServiceOutboundGateway caOutboundGateway = (CaServiceOutboundGateway) serviceContext.getGatewayProvider()
+					.getOutboundGateways().get("CertificateAuthority");
 			// Start Certificate Authority outbound gateway
 			caOutboundGateway.start();
 
 			// Pull CA certificate chain from Certificate Authority
-			List<X509Certificate> certificateChain = caOutboundGateway
-					.pullCertificateChain();
+			List<X509Certificate> certificateChain = caOutboundGateway.pullCertificateChain();
 
-			// Import trusted certificates
-			serviceContext.getSecurityProvider().getCertificateManager()
-					.importTrustedCertificates(certificateChain);
+			if (!certificateChain.isEmpty()) {
+				// Import trusted certificates
+				serviceContext.getSecurityProvider().getCertificateManager()
+						.importTrustedCertificates(certificateChain);
+
+			} else {
+				String errorMsg = "Certificate chain obtained from CA is empty";
+				if (logger.isErrorEnabled())
+					logger.error(errorMsg);
+				
+				throw new Exception(errorMsg);
+			}
 
 			// Generate key pair for the service certificate
 			KeyPair keyPair = RSAKeyPairGenerator.generateKey(2048);
 
 			// Certificate subject information
 			CertificateSubjectInformation csi = new CertificateSubjectInformation();
-			csi.setCommonName(serviceContext.getEnvironmentProvider()
-					.getHostname());
-			csi.setOrganizationalUnit(serviceContext.getServiceInfoProvider()
-					.getServiceGroup());
+			csi.setCommonName(serviceContext.getEnvironmentProvider().getHostname());
+			csi.setOrganizationalUnit(serviceContext.getServiceInfoProvider().getServiceGroup());
 			csi.setPublicKey(keyPair.getPublic());
 
 			// Send certificate signing request to the Certificate Authority
-			Certificate serviceCertificate = caOutboundGateway
-					.requestCertificateSign(csi);
+			Certificate serviceCertificate = caOutboundGateway.requestCertificateSign(csi);
 			Certificate[] certificates = { serviceCertificate };
 
 			// Import end entity certificate into the key store
-			serviceContext
-					.getSecurityProvider()
-					.getCertificateManager()
-					.getEndEntityCertificates()
-					.setKeyEntry(
-							csi.getCommonName(),
-							keyPair.getPrivate(),
-							serviceContext.getServiceInfoProvider()
-									.getServiceGroup().toCharArray(),
-							certificates);
+			serviceContext.getSecurityProvider().getCertificateManager().getEndEntityCertificates().setKeyEntry(
+					csi.getCommonName(), keyPair.getPrivate(),
+					serviceContext.getServiceInfoProvider().getServiceGroup().toCharArray(), certificates);
 
 			if (logger.isInfoEnabled()) {
 				logger.info("Trusted certificates key store size: {}",
-						serviceContext.getSecurityProvider()
-								.getCertificateManager()
-								.getTrustedCerticiates().size());
+						serviceContext.getSecurityProvider().getCertificateManager().getTrustedCerticiates().size());
 				logger.info("End entity certificate key store size: {}",
-						serviceContext.getSecurityProvider()
-								.getCertificateManager()
-								.getEndEntityCertificates().size());
+						serviceContext.getSecurityProvider().getCertificateManager().getEndEntityCertificates().size());
 			}
 
 			// Proceed to the Configuration state

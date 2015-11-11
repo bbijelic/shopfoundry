@@ -7,7 +7,9 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
@@ -21,6 +23,7 @@ import org.shopfoundry.core.service.registry.dto.Request;
 import org.shopfoundry.core.service.registry.dto.Response;
 import org.shopfoundry.services.registry.db.entity.ServiceGroup;
 import org.shopfoundry.services.registry.db.entity.ServiceGroupConfiguration;
+import org.shopfoundry.services.registry.db.entity.ServiceGroupConfigurationKeyValuePair;
 import org.shopfoundry.services.registry.db.repository.ServiceGroupRepository;
 import org.shopfoundry.services.registry.gateway.outbound.CaServiceOutboundGateway;
 import org.shopfoundry.services.registry.gateway.outbound.CertificateSubjectInformation;
@@ -38,8 +41,7 @@ import com.thoughtworks.xstream.io.xml.StaxDriver;
 @SuppressWarnings("serial")
 public class RegistrationServlet extends HttpServlet {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(RegistrationServlet.class);
+	private static final Logger logger = LoggerFactory.getLogger(RegistrationServlet.class);
 
 	/**
 	 * Service context
@@ -63,14 +65,12 @@ public class RegistrationServlet extends HttpServlet {
 	 * @throws NoSuchAlgorithmException
 	 * @throws InvalidKeySpecException
 	 */
-	private PublicKey decodePublicKey(String publicKey)
-			throws NoSuchAlgorithmException, InvalidKeySpecException {
+	private PublicKey decodePublicKey(String publicKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		// Requestor public key
 		byte[] publicKeyByteArray = Base64.decodeBase64(publicKey);
 
 		// Recreating public key from base64
-		X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(
-				publicKeyByteArray);
+		X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyByteArray);
 
 		KeyFactory keyFactory = KeyFactory.getInstance("RSA");
 		PublicKey servicePublicKey = keyFactory.generatePublic(publicKeySpec);
@@ -80,8 +80,8 @@ public class RegistrationServlet extends HttpServlet {
 	/**
 	 * POST
 	 */
-	protected void doPost(HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
 		if (logger.isTraceEnabled())
 			logger.trace(request.toString());
@@ -91,8 +91,7 @@ public class RegistrationServlet extends HttpServlet {
 		xstream.processAnnotations(Request.class);
 
 		// Unmarshal request
-		Request registrationRequest = (Request) xstream.fromXML(request
-				.getInputStream());
+		Request registrationRequest = (Request) xstream.fromXML(request.getInputStream());
 
 		// Initialize repository
 		ServiceGroupRepository serviceGroupRepository = new ServiceGroupRepository();
@@ -107,10 +106,8 @@ public class RegistrationServlet extends HttpServlet {
 
 			// Try to find service configuration by service group name and
 			// version
-			ServiceGroup serviceGroupEntity = serviceGroupRepository
-					.findByNameAndVersion(
-							registrationRequest.getServiceGroup(),
-							registrationRequest.getServiceVersion());
+			ServiceGroup serviceGroupEntity = serviceGroupRepository.findByNameAndVersion(
+					registrationRequest.getServiceGroup(), registrationRequest.getServiceVersion());
 
 			// Generated service GUI
 			String serviceGUID = UUID.randomUUID().toString();
@@ -119,12 +116,10 @@ public class RegistrationServlet extends HttpServlet {
 			registrationResponse.setServiceGiud(serviceGUID);
 
 			// Service common name for the certificate
-			String serviceCommonName = String.format("%s.%s", serviceGUID,
-					registrationRequest.getServiceGroup());
+			String serviceCommonName = String.format("%s.%s", serviceGUID, registrationRequest.getServiceGroup());
 
 			// Get public key
-			PublicKey publicKey = decodePublicKey(registrationRequest
-					.getCertificatePublicKey());
+			PublicKey publicKey = decodePublicKey(registrationRequest.getCertificatePublicKey());
 
 			// Certificate subject information
 			CertificateSubjectInformation csi = new CertificateSubjectInformation();
@@ -133,53 +128,53 @@ public class RegistrationServlet extends HttpServlet {
 			csi.setPublicKey(publicKey);
 
 			// Get Certificate Authority outbound gateway
-			CaServiceOutboundGateway caOutboundGateway = (CaServiceOutboundGateway) serviceContext
-					.getGatewayProvider().getOutboundGateways()
-					.get("CertificateAuthority");
+			CaServiceOutboundGateway caOutboundGateway = (CaServiceOutboundGateway) serviceContext.getGatewayProvider()
+					.getOutboundGateways().get("CertificateAuthority");
 
 			// Send certificate signing request to the Certificate Authority
-			Certificate serviceCertificate = caOutboundGateway
-					.requestCertificateSign(csi);
+			Certificate serviceCertificate = caOutboundGateway.requestCertificateSign(csi);
 
-			String signedCertificateBase64 = Base64
-					.encodeBase64String(serviceCertificate.getEncoded());
+			String signedCertificateBase64 = Base64.encodeBase64String(serviceCertificate.getEncoded());
 
 			// Set signed certificate to the response
 			registrationResponse.setCertificate(signedCertificateBase64);
 
 			if (logger.isInfoEnabled())
-				logger.info(
-						"Registering service from service group '{}' version '{}' with GUID '{}'",
-						registrationRequest.getServiceGroup(),
-						registrationRequest.getServiceVersion(), serviceGUID);
+				logger.info("Registering service from service group '{}' version '{}' with GUID '{}'",
+						registrationRequest.getServiceGroup(), registrationRequest.getServiceVersion(), serviceGUID);
 
 			// Set response content type to accepted by client
 			response.setContentType("application/xml");
 
 			// Get configurations
-			List<ServiceGroupConfiguration> configurations = serviceGroupEntity
-					.getServiceGroupConfiguration();
-
-			// Service group configuration
-			ServiceGroupConfiguration activeConfiguration;
+			List<ServiceGroupConfiguration> configurations = serviceGroupEntity.getServiceGroupConfiguration();
 
 			// Find active configuration by detemining biggest unix time
 			if (!configurations.isEmpty()) {
-				activeConfiguration = configurations.get(0);
+
+				// Service group configuration
+				ServiceGroupConfiguration activeConfiguration = configurations.get(0);
 				for (ServiceGroupConfiguration serviceGroupConfiguration : configurations) {
-					if (serviceGroupConfiguration.getActiveFrom().getTime() > activeConfiguration
-							.getActiveFrom().getTime()) {
+					if (serviceGroupConfiguration.getActiveFrom().getTime() > activeConfiguration.getActiveFrom()
+							.getTime()) {
 						activeConfiguration = serviceGroupConfiguration;
 					}
 				}
+
+				Map<String, String> configurationMap = new HashMap<>();
+				for (ServiceGroupConfigurationKeyValuePair configPair : activeConfiguration.getConfiguration()) {
+					configurationMap.put(configPair.getKey(), configPair.getValue());
+				}
+
+				// Set configuration map to the response
+				registrationResponse.setServiceConfiguration(configurationMap);
+
 			}
 
 			// CA chain
-			String caChain = serviceContext.getSecurityProvider()
-					.getCertificateManager().exportTrustedCertificates();
-			String caChainBase64 = Base64
-					.encodeBase64String(caChain.getBytes());
-
+			String caChain = serviceContext.getSecurityProvider().getCertificateManager().exportTrustedCertificates();
+			String caChainBase64 = Base64.encodeBase64String(caChain.getBytes());
+			
 			// Set CA chain to registration response
 			registrationResponse.setCertificateAuthorityChain(caChainBase64);
 
@@ -196,10 +191,8 @@ public class RegistrationServlet extends HttpServlet {
 		} finally {
 
 			// Allways return this values
-			registrationResponse.setServiceGroup(registrationRequest
-					.getServiceGroup());
-			registrationResponse.setServiceVersion(registrationRequest
-					.getServiceVersion());
+			registrationResponse.setServiceGroup(registrationRequest.getServiceGroup());
+			registrationResponse.setServiceVersion(registrationRequest.getServiceVersion());
 
 			// Marshall to XML
 			response.getWriter().print(xstream.toXML(registrationResponse));

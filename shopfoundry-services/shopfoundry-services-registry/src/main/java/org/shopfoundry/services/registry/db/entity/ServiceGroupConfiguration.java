@@ -86,10 +86,19 @@ public class ServiceGroupConfiguration {
 	@JoinColumn(name = "configuration")
 	private List<ServiceGroupConfigurationKeyValuePair> configuration = new ArrayList<ServiceGroupConfigurationKeyValuePair>();
 
+	/**
+	 * Configuration getter.
+	 * 
+	 * @return the configuration
+	 */
+	public List<ServiceGroupConfigurationKeyValuePair> getConfiguration() {
+		return configuration;
+	}
+
 	@Override
 	public String toString() {
-		return "ServiceGroupConfiguration [id=" + id + ", activeFrom="
-				+ activeFrom + ", configuration=" + configuration + "]";
+		return "ServiceGroupConfiguration [id=" + id + ", activeFrom=" + activeFrom + ", configuration=" + configuration
+				+ "]";
 	}
 
 }
