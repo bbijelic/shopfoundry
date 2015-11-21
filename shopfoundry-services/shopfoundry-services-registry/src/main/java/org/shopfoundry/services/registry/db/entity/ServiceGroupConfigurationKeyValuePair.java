@@ -115,30 +115,6 @@ public class ServiceGroupConfigurationKeyValuePair {
 	}
 
 	/**
-	 * Configuration type
-	 */
-	@Column(name = "config_type")
-	private String configurationType;
-
-	/**
-	 * Configuration type.
-	 * 
-	 * @return the configuration type
-	 */
-	public String getConfigurationType() {
-		return configurationType;
-	}
-
-	/**
-	 * Configuration type
-	 * 
-	 * @param configurationType
-	 */
-	public void setConfigurationType(String configurationType) {
-		this.configurationType = configurationType;
-	}
-
-	/**
 	 * Is public pair
 	 */
 	@Column(name = "public", nullable = false)
@@ -164,7 +140,7 @@ public class ServiceGroupConfigurationKeyValuePair {
 
 	@Override
 	public String toString() {
-		return "ServiceGroupConfigurationKeyPair [id=" + id + ", key=" + key + ", value=" + value
-				+ ", configurationType=" + configurationType + "]";
+		return "ServiceGroupConfigurationKeyValuePair [id=" + id + ", configuration=" + configuration + ", key=" + key
+				+ ", value=" + value + ", publicPair=" + publicPair + "]";
 	}
 }

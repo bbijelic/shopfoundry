@@ -13,6 +13,7 @@ public interface RegistryOutboundGateway extends OutboundGateway {
 	 * Registers service on Registry service. Registry service returns signed
 	 * certificate along with service configuration parameters.
 	 * 
+	 * @param configurationProvider
 	 * @throws RegistryOutboundGatewayException
 	 */
 	public void register() throws RegistryOutboundGatewayException;

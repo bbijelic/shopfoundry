@@ -33,6 +33,7 @@ import org.shopfoundry.core.security.SecurityProvider;
 import org.shopfoundry.core.security.SecurityProviderException;
 import org.shopfoundry.core.security.certificates.CertificateManagerException;
 import org.shopfoundry.core.security.ssl.PermissiveTrustManager;
+import org.shopfoundry.core.service.config.ConfigurationProvider;
 import org.shopfoundry.core.service.info.ServiceInfoProvider;
 import org.shopfoundry.core.service.info.ServiceInfoProviderException;
 import org.shopfoundry.core.service.registry.dto.Request;
@@ -65,6 +66,11 @@ public class DefaultRegistryOutboundGateway implements RegistryOutboundGateway {
 	private SecurityProvider securityProvider;
 
 	/**
+	 * Configuration provider.
+	 */
+	private ConfigurationProvider configurationProvider;
+
+	/**
 	 * Registration URL
 	 */
 	private String registrationUrl;
@@ -75,8 +81,9 @@ public class DefaultRegistryOutboundGateway implements RegistryOutboundGateway {
 	 * @param serviceInfoProvider
 	 * @param registrationUrl
 	 */
-	public DefaultRegistryOutboundGateway(ServiceInfoProvider serviceInfoProvider, SecurityProvider securityProvider,
-			String registrationUrl) {
+	public DefaultRegistryOutboundGateway(ConfigurationProvider configurationProvider,
+			ServiceInfoProvider serviceInfoProvider, SecurityProvider securityProvider, String registrationUrl) {
+		this.configurationProvider = configurationProvider;
 		this.serviceInfoProvider = serviceInfoProvider;
 		this.securityProvider = securityProvider;
 		this.registrationUrl = registrationUrl;
@@ -163,6 +170,9 @@ public class DefaultRegistryOutboundGateway implements RegistryOutboundGateway {
 
 			// Set service GUID returned by registry service
 			this.serviceInfoProvider.setServiceGuid(response.getServiceGiud());
+
+			// Set configuration obtained from the registry service
+			this.configurationProvider.importConfiguration(response.getServiceConfiguration());
 
 			// Get end-entity certificate
 			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");

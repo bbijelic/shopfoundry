@@ -62,12 +62,12 @@ public class StartingState implements ServiceState {
 	 * @throws KeyManagementException
 	 * @throws NoSuchAlgorithmException
 	 * @throws ServiceInfoProviderException
-	 * @throws ServiceStateException 
+	 * @throws ServiceStateException
 	 * @throws KeyStoreException
 	 * @throws CertificateException
 	 */
-	private void registerService(ServiceContext serviceContext)
-			throws GatewayException, ServiceContextException, NoSuchAlgorithmException, ServiceInfoProviderException, ServiceStateException {
+	private void registerService(ServiceContext serviceContext) throws GatewayException, ServiceContextException,
+			NoSuchAlgorithmException, ServiceInfoProviderException, ServiceStateException {
 		if (logger.isInfoEnabled())
 			logger.info("Registering service");
 
@@ -79,7 +79,7 @@ public class StartingState implements ServiceState {
 
 			// Stat registry service outbound gateway
 			registryOutboundGateway.start();
-			
+
 			// Performs registration
 			registryOutboundGateway.register();
 

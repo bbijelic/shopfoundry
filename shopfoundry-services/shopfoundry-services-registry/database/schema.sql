@@ -37,7 +37,6 @@ CREATE TABLE service_group_configuration (
 id					int not null auto_increment COMMENT 'Service group configuration unique identifier',
 service_group		int not null COMMENT 'Service group to which this configuration entry relates',
 active_from			timestamp not null default current_timestamp COMMENT 'Configuration activation time',
-configuration_data	text COMMENT 'Configuration data',
 
 PRIMARY KEY (id, service_group),
 CONSTRAINT service_group_configuration__service_group_fk FOREIGN KEY (service_group) REFERENCES service_group (id)
@@ -49,10 +48,28 @@ id					int not null auto_increment COMMENT 'Configuration pair unique id',
 configuration		int not null,
 config_key			varchar(255) not null,
 config_value		varchar(255) not null,
-config_type			enum('string', 'integer', 'decimal', 'object'),
 public				bool default false COMMENT 'Is configuration pair public or private',
 
 PRIMARY KEY (id, configuration),
 CONSTRAINT service_group_configuration_keypair_uq UNIQUE (configuration, config_key),
 CONSTRAINT service_group_configuration_keypair_fk FOREIGN KEY (configuration) REFERENCES service_group_configuration (id)
 ) ENGINE = InnoDB;
+
+
+-- VIEWS
+
+CREATE OR REPLACE VIEW service_latest_config_view AS
+	SELECT 
+		sg.name AS 'service', 
+		sg.version AS 'version', 
+		sgckp.config_key AS 'parameter', 
+		sgckp.config_value AS 'value', 
+		sgckp.public AS 'public'
+	FROM 
+		service_group sg, 
+		service_group_configuration sgc, 
+		service_group_configuration_key_pairs sgckp
+	WHERE 
+		sgckp.configuration = sgc.id 
+		AND sgc.service_group = sg.id
+		AND sgc.active_from = (SELECT MAX(active_from) FROM service_group_configuration);

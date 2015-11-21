@@ -18,6 +18,7 @@ import sun.misc.BASE64Decoder;
  * 
  * @author Bojan Bijelic
  */
+@SuppressWarnings("restriction")
 public class PrivateKeyLoader {
 
 	private final static Logger logger = LoggerFactory

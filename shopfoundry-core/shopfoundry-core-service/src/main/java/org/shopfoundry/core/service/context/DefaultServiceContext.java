@@ -1,6 +1,7 @@
 package org.shopfoundry.core.service.context;
 
 import org.shopfoundry.core.security.SecurityProvider;
+import org.shopfoundry.core.service.config.ConfigurationProvider;
 import org.shopfoundry.core.service.environment.EnvironmentProvider;
 import org.shopfoundry.core.service.gateway.GatewayProvider;
 import org.shopfoundry.core.service.guid.GuidProvider;
@@ -18,8 +19,7 @@ public class DefaultServiceContext implements ServiceContext {
 	/**
 	 * Logger.
 	 */
-	private static final Logger logger = LoggerFactory
-			.getLogger(DefaultServiceContext.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultServiceContext.class);
 
 	/**
 	 * Constructor.
@@ -30,9 +30,10 @@ public class DefaultServiceContext implements ServiceContext {
 	 * @param securityProvider
 	 * @param gatewayProvider
 	 */
-	public DefaultServiceContext(ServiceInfoProvider serviceInfoProvider,
-			EnvironmentProvider environmentProvider, GuidProvider guidProvider,
-			SecurityProvider securityProvider, GatewayProvider gatewayProvider) {
+	public DefaultServiceContext(ConfigurationProvider configurationProvider, ServiceInfoProvider serviceInfoProvider,
+			EnvironmentProvider environmentProvider, GuidProvider guidProvider, SecurityProvider securityProvider,
+			GatewayProvider gatewayProvider) {
+		this.configurationProvider = configurationProvider;
 		this.serviceInfoProvider = serviceInfoProvider;
 		this.environmentProvider = environmentProvider;
 		this.guidProvider = guidProvider;
@@ -40,8 +41,7 @@ public class DefaultServiceContext implements ServiceContext {
 		this.gatewayProvider = gatewayProvider;
 
 		if (logger.isInfoEnabled())
-			logger.info("{} initialized",
-					DefaultServiceContext.class.getSimpleName());
+			logger.info("{} initialized", DefaultServiceContext.class.getSimpleName());
 	}
 
 	/**
@@ -50,8 +50,7 @@ public class DefaultServiceContext implements ServiceContext {
 	private ServiceInfoProvider serviceInfoProvider;
 
 	@Override
-	public ServiceInfoProvider getServiceInfoProvider()
-			throws ServiceContextException {
+	public ServiceInfoProvider getServiceInfoProvider() throws ServiceContextException {
 		if (this.serviceInfoProvider == null)
 			throw new ServiceContextException("Service info provider not set");
 
@@ -64,8 +63,7 @@ public class DefaultServiceContext implements ServiceContext {
 	private EnvironmentProvider environmentProvider;
 
 	@Override
-	public EnvironmentProvider getEnvironmentProvider()
-			throws ServiceContextException {
+	public EnvironmentProvider getEnvironmentProvider() throws ServiceContextException {
 		if (this.environmentProvider == null)
 			throw new ServiceContextException("Environment provider not set");
 
@@ -91,8 +89,7 @@ public class DefaultServiceContext implements ServiceContext {
 	private SecurityProvider securityProvider;
 
 	@Override
-	public SecurityProvider getSecurityProvider()
-			throws ServiceContextException {
+	public SecurityProvider getSecurityProvider() throws ServiceContextException {
 		if (this.securityProvider == null)
 			throw new ServiceContextException("Security provider not set");
 
@@ -110,6 +107,16 @@ public class DefaultServiceContext implements ServiceContext {
 			throw new ServiceContextException("Gateway provider not set");
 
 		return this.gatewayProvider;
+	}
+
+	private ConfigurationProvider configurationProvider;
+
+	@Override
+	public ConfigurationProvider getConfigurationProvider() throws ServiceContextException {
+		if (this.configurationProvider == null)
+			throw new ServiceContextException("Configuration provider not set");
+
+		return this.configurationProvider;
 	}
 
 }

@@ -1,6 +1,7 @@
 package org.shopfoundry.core.service.context;
 
 import org.shopfoundry.core.security.SecurityProvider;
+import org.shopfoundry.core.service.config.ConfigurationProvider;
 import org.shopfoundry.core.service.environment.EnvironmentProvider;
 import org.shopfoundry.core.service.gateway.GatewayProvider;
 import org.shopfoundry.core.service.guid.GuidProvider;
@@ -14,13 +15,20 @@ import org.shopfoundry.core.service.info.ServiceInfoProvider;
 public interface ServiceContext {
 
 	/**
+	 * Returns configuration provider
+	 * 
+	 * @return
+	 * @throws ServiceContextException
+	 */
+	public ConfigurationProvider getConfigurationProvider() throws ServiceContextException;
+
+	/**
 	 * Returns service info provider.
 	 * 
 	 * @return the service info provider
 	 * @throws ServiceContextException
 	 */
-	public ServiceInfoProvider getServiceInfoProvider()
-			throws ServiceContextException;
+	public ServiceInfoProvider getServiceInfoProvider() throws ServiceContextException;
 
 	/**
 	 * Returns environment provider.
@@ -28,8 +36,7 @@ public interface ServiceContext {
 	 * @return the environment provider
 	 * @throws ServiceContextException
 	 */
-	public EnvironmentProvider getEnvironmentProvider()
-			throws ServiceContextException;
+	public EnvironmentProvider getEnvironmentProvider() throws ServiceContextException;
 
 	/**
 	 * Returns GUID provider.
@@ -45,8 +52,7 @@ public interface ServiceContext {
 	 * @return the security provider
 	 * @throws ServiceContextException
 	 */
-	public SecurityProvider getSecurityProvider()
-			throws ServiceContextException;
+	public SecurityProvider getSecurityProvider() throws ServiceContextException;
 
 	/**
 	 * Returns gateway provider.

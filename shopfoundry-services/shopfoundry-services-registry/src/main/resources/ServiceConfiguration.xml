@@ -4,6 +4,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans 
 	   					   http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+	<!-- Configuration provider -->
+	<bean id="ConfigurationProvider"
+		class="org.shopfoundry.core.service.config.DefaultConfigurationProvider" />
+
 	<!-- Service info provider -->
 	<bean id="ServiceInfoProvider"
 		class="org.shopfoundry.core.service.info.DefaultServiceInfoProvider">
@@ -88,6 +92,7 @@
 	<!-- Service context -->
 	<bean id="ServiceContext"
 		class="org.shopfoundry.core.service.context.DefaultServiceContext">
+		<constructor-arg ref="ConfigurationProvider" />
 		<constructor-arg ref="ServiceInfoProvider" />
 		<constructor-arg ref="EnvironmentProvider" />
 		<constructor-arg ref="GuidProvider" />
