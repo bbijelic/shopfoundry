@@ -9,6 +9,7 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
+import org.shopfoundry.core.service.gateway.inbound.InboundGatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,6 +146,12 @@ public class DefaultHttpInboundGateway implements InboundGateway {
 
 		if (logger.isInfoEnabled())
 			logger.info("HTTP Inbound Gateway stopped");
+	}
+
+	@Override
+	public void configure() throws InboundGatewayException {
+		
+		
 	}
 
 }

@@ -5,7 +5,6 @@ import org.shopfoundry.core.service.fsm.ServiceStateMachine;
 import org.shopfoundry.core.service.fsm.state.AllowedState;
 import org.shopfoundry.core.service.fsm.state.ServiceState;
 import org.shopfoundry.core.service.fsm.state.ServiceStateException;
-import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,12 +29,6 @@ public class ConfiguringState implements ServiceState {
 			throws ServiceStateException {
 
 		try {
-
-			// Start all inbound gateways
-			for (InboundGateway inboundGateway : serviceContext
-					.getGatewayProvider().getInboundGateways().values()) {
-				inboundGateway.start();
-			}
 
 			// Change state to running
 			serviceStateMachine.changeState(AllowedState.RUNNING);

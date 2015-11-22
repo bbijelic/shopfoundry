@@ -10,4 +10,13 @@ import org.shopfoundry.core.service.gateway.Gateway;
  * 
  * @author Bojan Bijelic
  */
-public interface InboundGateway extends Gateway {}
+public interface InboundGateway extends Gateway {
+
+	/**
+	 * Configures inbound with obtained configuration.
+	 * 
+	 * @throws InboundGatewayException
+	 */
+	public void configure() throws InboundGatewayException;
+
+}

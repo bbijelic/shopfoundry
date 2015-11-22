@@ -1,12 +1,18 @@
 package org.shopfoundry.core.service.gateway.amqp;
 
+import org.shopfoundry.core.service.config.ConfigurationProvider;
+import org.shopfoundry.core.service.config.ConfigurationProviderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * AMQP Connection properties default implementation.
  * 
  * @author Bojan Bijelic
  */
-public class DefaultAmqpConnectionProperties implements
-		AmqpConnectionProperties {
+public class DefaultAmqpConnectionProperties implements AmqpConnectionProperties {
+
+	private final static Logger logger = LoggerFactory.getLogger(DefaultAmqpConnectionProperties.class);
 
 	private String host;
 
@@ -63,20 +69,62 @@ public class DefaultAmqpConnectionProperties implements
 		this.password = password;
 	}
 
+	private boolean usingSSL = false;
+
+	@Override
+	public boolean isUsingSSL() {
+		return usingSSL;
+	}
+
+	public void setUsingSSL(boolean usingSSL) {
+		this.usingSSL = usingSSL;
+	}
+
+	private String sslProtocol;
+
+	@Override
+	public String getSslProtocol() {
+		return sslProtocol;
+	}
+
+	public void setSslProtocol(String sslProtocol) {
+		this.sslProtocol = sslProtocol;
+	}
+
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("DefaultAmqpConnectionProperties [host=");
-		builder.append(host);
-		builder.append(", port=");
-		builder.append(port);
-		builder.append(", virtualHost=");
-		builder.append(virtualHost);
-		builder.append(", username=");
-		builder.append(username);
-		builder.append(", password=***");
-		builder.append("]");
-		return builder.toString();
+		return "DefaultAmqpConnectionProperties [host=" + host + ", port=" + port + ", virtualHost=" + virtualHost
+				+ ", username=" + username + ", password=" + password + ", usingSSL=" + usingSSL + ", sslProtocol="
+				+ sslProtocol + "]";
+	}
+
+	@Override
+	public void importProperties(ConfigurationProvider configurationProvider) throws Exception {
+
+		try {
+
+			// Broker hostname
+			host = configurationProvider.getConfigurationValue(AmqpConfigParams.Broker.HOSTNAME);
+			// Broker port
+			port = new Integer(configurationProvider.getConfigurationValue(AmqpConfigParams.Broker.PORT));
+			// Broker username
+			username = configurationProvider.getConfigurationValue(AmqpConfigParams.Broker.USERNAME);
+			// Password
+			password = configurationProvider.getConfigurationValue(AmqpConfigParams.Broker.PASSWORD);
+			// Virtual host
+			virtualHost = configurationProvider.getConfigurationValue(AmqpConfigParams.Broker.VIRTUALHOST);
+			// Using ssl
+			usingSSL = configurationProvider.getConfigurationValue(AmqpConfigParams.Broker.SSL_ENABLED)
+					.toLowerCase() == "true" ? true : false;
+			sslProtocol = configurationProvider.getConfigurationValue(AmqpConfigParams.Broker.SSL_VERSION);
+
+		} catch (ConfigurationProviderException e) {
+			if(logger.isErrorEnabled())
+				logger.error(e.getMessage());
+			
+			throw new Exception(e.getMessage(), e);
+		}
+
 	}
 
 }

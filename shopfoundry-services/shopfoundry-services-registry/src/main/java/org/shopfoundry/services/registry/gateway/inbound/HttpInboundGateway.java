@@ -14,6 +14,7 @@ import org.shopfoundry.core.security.SecurityProviderException;
 import org.shopfoundry.core.security.certificates.CertificateManagerException;
 import org.shopfoundry.core.service.context.ServiceContext;
 import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
+import org.shopfoundry.core.service.gateway.inbound.InboundGatewayException;
 import org.shopfoundry.core.service.info.ServiceInfoProviderException;
 import org.shopfoundry.services.registry.servlet.RegistrationServlet;
 import org.slf4j.Logger;
@@ -130,6 +131,12 @@ public class HttpInboundGateway implements InboundGateway {
 			if (logger.isErrorEnabled())
 				logger.error(e.getMessage(), e);
 		}
+	}
+
+	@Override
+	public void configure() throws InboundGatewayException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

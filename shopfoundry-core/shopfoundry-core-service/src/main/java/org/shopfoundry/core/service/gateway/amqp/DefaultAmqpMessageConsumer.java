@@ -2,10 +2,12 @@ package org.shopfoundry.core.service.gateway.amqp;
 
 import java.io.IOException;
 
+import org.shopfoundry.core.service.handler.MessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.rabbitmq.client.AMQP.BasicProperties;
+import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Envelope;
 import com.rabbitmq.client.ShutdownSignalException;
 
@@ -19,18 +21,47 @@ public class DefaultAmqpMessageConsumer implements AmqpMessageConsumer {
 	/**
 	 * Logger
 	 */
-	private static final Logger logger = LoggerFactory
-			.getLogger(DefaultAmqpMessageConsumer.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultAmqpMessageConsumer.class);
+
+	/**
+	 * Message handler
+	 */
+	private MessageHandler messageHandler;
+
+	/**
+	 * Amqp channel
+	 */
+	private Channel channel;
+
+	public Channel getChannel() {
+		return channel;
+	}
+
+	@Override
+	public void associateWithChannel(Channel channel) {
+		this.channel = channel;
+	}
+
+	/**
+	 * Constructor
+	 * 
+	 * @param amqpMessageHandler
+	 */
+	public DefaultAmqpMessageConsumer(MessageHandler amqpMessageHandler) {
+		this.messageHandler = amqpMessageHandler;
+	}
 
 	/**
 	 * Called when the consumer is cancelled for reasons other than by a call to
 	 * Channel.basicCancel(java.lang.String).
+	 * 
+	 * @see <a href="https://www.rabbitmq.com/consumer-cancel.html">RabbitMQ
+	 *      consumer cancel</a>
 	 */
 	@Override
 	public void handleCancel(String consumerTag) throws IOException {
 		if (logger.isInfoEnabled())
-			logger.info("Message with tag '{}' canceled by the consumer",
-					consumerTag);
+			logger.info("Consumer '{}' canceled by the broker", consumerTag);
 	}
 
 	/**
@@ -40,8 +71,7 @@ public class DefaultAmqpMessageConsumer implements AmqpMessageConsumer {
 	@Override
 	public void handleCancelOk(String consumerTag) {
 		if (logger.isInfoEnabled())
-			logger.info("Message with tag '{}' canceled by the consumer",
-					consumerTag);
+			logger.info("Consumer '{}' successfuly canceled", consumerTag);
 	}
 
 	/**
@@ -52,19 +82,35 @@ public class DefaultAmqpMessageConsumer implements AmqpMessageConsumer {
 	@Override
 	public void handleConsumeOk(String consumerTag) {
 		if (logger.isInfoEnabled())
-			logger.info("Consumer with tag '{}' successfully registered",
-					consumerTag);
+			logger.info("Consumer '{}' successfully registered", consumerTag);
 	}
 
 	/**
 	 * Called when a basic.deliver is received for this consumer.
 	 */
 	@Override
-	public void handleDelivery(String consumerTag, Envelope envelope,
-			BasicProperties basicProperties, byte[] body) throws IOException {
+	public void handleDelivery(String consumerTag, Envelope envelope, BasicProperties basicProperties, byte[] body)
+			throws IOException {
 		if (logger.isInfoEnabled())
-			logger.info("Consumer with tag '{}' received delivery of {} bytes",
-					consumerTag, body.length);
+			logger.info("Consumer with tag '{}' received delivery of {} bytes", consumerTag, body.length);
+
+		try {
+
+			// Handle message
+			this.messageHandler.handleMessage(body);
+
+			// Acknowlage only this message
+			channel.basicAck(envelope.getDeliveryTag(), false);
+
+		} catch (Exception e) {
+
+			if (logger.isErrorEnabled())
+				logger.error("Error '{}' occured while handling message '{}' on consumer '{}', rejecting message",
+						e.getMessage(), envelope.getDeliveryTag(), consumerTag);
+
+			// Reject message, do not requeue
+			channel.basicReject(envelope.getDeliveryTag(), false);
+		}
 	}
 
 	/**
@@ -73,7 +119,7 @@ public class DefaultAmqpMessageConsumer implements AmqpMessageConsumer {
 	@Override
 	public void handleRecoverOk(String consumerTag) {
 		if (logger.isInfoEnabled())
-			logger.info("Consumer with tag '{}' is recovering", consumerTag);
+			logger.info("Consumer with tag '{}' is successfuly recovered", consumerTag);
 	}
 
 	/**
@@ -81,11 +127,10 @@ public class DefaultAmqpMessageConsumer implements AmqpMessageConsumer {
 	 * down.
 	 */
 	@Override
-	public void handleShutdownSignal(String consumerTag,
-			ShutdownSignalException shutdownSignalException) {
+	public void handleShutdownSignal(String consumerTag, ShutdownSignalException shutdownSignalException) {
 		if (logger.isInfoEnabled())
-			logger.info("Consumer with tag '{}' is shutting down: {}",
-					consumerTag, shutdownSignalException.getMessage());
+			logger.info("Consumer with tag '{}' is shutting down: {}", consumerTag,
+					shutdownSignalException.getMessage());
 
 	}
 

@@ -50,6 +50,80 @@
 		</constructor-arg>
 	</bean>
 
+	<!-- Amqp Connection Properties -->
+	<bean id="AmqpConnectionProperties"
+		class="org.shopfoundry.core.service.gateway.amqp.DefaultAmqpConnectionProperties" />
+
+	<!-- Service bus message handler -->
+	<bean id="ServiceBusMessageHandler"
+		class="org.shopfoundry.services.email.handler.EmailServiceMessageHandler" />
+
+	<!-- Amqp service bus message consumer -->
+	<bean id="AmqpServiceBusMessageConsumer"
+		class="org.shopfoundry.core.service.gateway.amqp.DefaultAmqpMessageConsumer">
+		<!-- Message handler -->
+		<constructor-arg ref="ServiceBusMessageHandler" />
+	</bean>
+
+	<!-- Amqp Service Bus inbound gatway context -->
+	<bean id="AmqpServiceBusInboundGatwayContext"
+		class="org.shopfoundry.core.service.gateway.amqp.DefaultAmqpGatewayContext">
+		<!-- Connection properties -->
+		<constructor-arg ref="AmqpConnectionProperties" />
+		<!-- Message consumer -->
+		<constructor-arg ref="AmqpServiceBusMessageConsumer" />
+		<!-- Amqp Bus Type -->
+		<constructor-arg value="SERVICE" />
+	</bean>
+
+	<!-- Amqp Service Bus Inbound Gateway -->
+	<bean id="AmqpServiceBusInboundGatway"
+		class="org.shopfoundry.core.service.gateway.amqp.AmqpInboundGateway">
+		<!-- Service info provider -->
+		<constructor-arg ref="ServiceInfoProvider" />
+		<!-- Security provider -->
+		<constructor-arg ref="SecurityProvider" />
+		<!-- Configuration provider -->
+		<constructor-arg ref="ConfigurationProvider" />
+		<!-- Amqp service bus context -->
+		<constructor-arg ref="AmqpServiceBusInboundGatwayContext" />
+	</bean>
+
+	<!-- Event bus message handler -->
+	<bean id="EventBusMessageHandler"
+		class="org.shopfoundry.core.service.handler.EventBusMessageHandler" />
+
+	<!-- Amqp event bus message consumer -->
+	<bean id="AmqpEventBusMessageConsumer"
+		class="org.shopfoundry.core.service.gateway.amqp.DefaultAmqpMessageConsumer">
+		<!-- Message handler -->
+		<constructor-arg ref="EventBusMessageHandler" />
+	</bean>
+
+	<!-- Amqp Event Bus inbound gatway context -->
+	<bean id="AmqpEventBusInboundGatwayContext"
+		class="org.shopfoundry.core.service.gateway.amqp.DefaultAmqpGatewayContext">
+		<!-- Connection properties -->
+		<constructor-arg ref="AmqpConnectionProperties" />
+		<!-- Event bus message consumer -->
+		<constructor-arg ref="AmqpEventBusMessageConsumer" />
+		<!-- Amqp Bus Type -->
+		<constructor-arg value="EVENT" />
+	</bean>
+
+	<!-- Amqp Event Bus Inbound Gateway -->
+	<bean id="AmqpEventBusInboundGatway"
+		class="org.shopfoundry.core.service.gateway.amqp.AmqpInboundGateway">
+		<!-- Service info provider -->
+		<constructor-arg ref="ServiceInfoProvider" />
+		<!-- Security provider -->
+		<constructor-arg ref="SecurityProvider" />
+		<!-- Configuration provider -->
+		<constructor-arg ref="ConfigurationProvider" />
+		<!-- Amqp event bus context -->
+		<constructor-arg ref="AmqpEventBusInboundGatwayContext" />
+	</bean>
+
 	<!-- Gateway provider -->
 	<bean id="GatewayProvider"
 		class="org.shopfoundry.core.service.gateway.DefaultGatewayProvider">
@@ -57,6 +131,7 @@
 		<constructor-arg>
 			<map key-type="java.lang.String"
 				value-type="org.shopfoundry.core.service.gateway.outbound.OutboundGateway">
+				<!-- Registry service outbound gateway -->
 				<entry key="RegistryService" value-ref="RegistryServiceOutboundGateway" />
 			</map>
 		</constructor-arg>
@@ -64,6 +139,10 @@
 		<constructor-arg>
 			<map key-type="java.lang.String"
 				value-type="org.shopfoundry.core.service.gateway.inbound.InboundGateway">
+				<!-- AMQP service bus inbound gateway -->
+				<entry key="AmqpServiceBus" value-ref="AmqpServiceBusInboundGatway" />
+				<!-- AMQP service bus inbound gateway -->
+				<entry key="AmqpEventBus" value-ref="AmqpEventBusInboundGatway" />
 			</map>
 		</constructor-arg>
 	</bean>

@@ -40,12 +40,12 @@ VALUES (@last_insert_id, "broker.password", "service.email", false);
 -- Connection SSL enabled flag
 INSERT INTO service_group_configuration_key_pairs 
 	(configuration, config_key, config_value, public) 
-VALUES (@last_insert_id, "broker.ssl.enabled", "true", false);
+VALUES (@last_insert_id, "broker.ssl.enabled", "false", false);
 
 -- Connection SSL version
 INSERT INTO service_group_configuration_key_pairs 
 	(configuration, config_key, config_value, public) 
-VALUES (@last_insert_id, "broker.ssl.version", "TLSv1.1", false);
+VALUES (@last_insert_id, "broker.ssl.version", "TLSv1.2", false);
 
 -- ------------------------
 -- BUS RELATED
@@ -63,6 +63,14 @@ INSERT INTO service_group_configuration_key_pairs
 	(configuration, config_key, config_value, public) 
 VALUES (@last_insert_id, "bus.service.queue.name", "service.email.queue", true);
 
+-- Service bus routing
+INSERT INTO service_group_configuration_key_pairs 
+	(configuration, config_key, config_value, public) 
+VALUES (@last_insert_id, "bus.service.routing", "service.email", true);
+
+---
+---
+
 -- Event bus
 -- Event bus exchange
 INSERT INTO service_group_configuration_key_pairs 
@@ -75,13 +83,13 @@ INSERT INTO service_group_configuration_key_pairs
 	(configuration, config_key, config_value, public) 
 VALUES (@last_insert_id, "bus.event.routing.all", "", true);
 
--- Service event bining for service group
+-- Service event routing for service group
 INSERT INTO service_group_configuration_key_pairs 
 	(configuration, config_key, config_value, public) 
 VALUES (@last_insert_id, "bus.event.routing.service.group", "service.email", true);
 
--- Service event bining for service group instance
+-- Service event routing for service group instance
 INSERT INTO service_group_configuration_key_pairs 
 	(configuration, config_key, config_value, public) 
-VALUES (@last_insert_id, "bus.event.binding.service.instance", "service.email.{uuid}", true);
+VALUES (@last_insert_id, "bus.event.routing.service.instance", "service.email.{uuid}", true);
 

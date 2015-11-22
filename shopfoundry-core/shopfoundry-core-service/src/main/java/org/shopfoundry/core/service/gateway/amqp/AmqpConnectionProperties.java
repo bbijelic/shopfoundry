@@ -1,5 +1,7 @@
 package org.shopfoundry.core.service.gateway.amqp;
 
+import org.shopfoundry.core.service.config.ConfigurationProvider;
+
 /**
  * AMQP Connection properties
  * 
@@ -42,4 +44,24 @@ public interface AmqpConnectionProperties {
 	 */
 	public String getPassword();
 	
+	/**
+	 * SSL protocol version
+	 * @return the SSL protocol version
+	 */
+	public String getSslProtocol();
+	
+	/**
+	 * Is using SSL
+	 * @return true if using SSL, false otherwise
+	 */
+	public boolean isUsingSSL();
+
+	/**
+	 * Imports configuration parameters
+	 * 
+	 * @param configurationProvider
+	 * @throws Exception
+	 */
+	public void importProperties(ConfigurationProvider configurationProvider) throws Exception;
+
 }

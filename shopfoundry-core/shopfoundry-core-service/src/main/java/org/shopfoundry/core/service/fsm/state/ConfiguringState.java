@@ -1,8 +1,11 @@
 package org.shopfoundry.core.service.fsm.state;
 
 import org.shopfoundry.core.service.context.ServiceContext;
+import org.shopfoundry.core.service.context.ServiceContextException;
 import org.shopfoundry.core.service.fsm.ServiceStateMachine;
 import org.shopfoundry.core.service.fsm.ServiceStateMachineException;
+import org.shopfoundry.core.service.gateway.GatewayException;
+import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,12 +16,10 @@ import org.slf4j.LoggerFactory;
  */
 public class ConfiguringState implements ServiceState {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(StartingState.class);
+	private static final Logger logger = LoggerFactory.getLogger(StartingState.class);
 
 	@Override
-	public void handle(ServiceContext serviceContext,
-			ServiceStateMachine serviceStateMachine)
+	public void handle(ServiceContext serviceContext, ServiceStateMachine serviceStateMachine)
 			throws ServiceStateException {
 
 		if (logger.isInfoEnabled())
@@ -26,23 +27,21 @@ public class ConfiguringState implements ServiceState {
 
 		try {
 
-			try {
-				
-				// Simulating configuration work
-				Thread.sleep(10000);
-				
-			} catch (InterruptedException e) {
-				if (logger.isErrorEnabled())
-					logger.error(e.getMessage(), e);
-
-				// Change state to running
-				serviceStateMachine.changeState(AllowedState.SHUTTING_DOWN);
+			if (!serviceContext.getGatewayProvider().getInboundGateways().isEmpty()) {
+				for (InboundGateway inboundGateway : serviceContext.getGatewayProvider().getInboundGateways()
+						.values()) {
+					if (logger.isInfoEnabled())
+						logger.info("Configuring inbound gateay: {}", inboundGateway.getClass().getCanonicalName());
+					
+					// Configure
+					inboundGateway.configure();
+				}
 			}
 
 			// Change state to running
 			serviceStateMachine.changeState(AllowedState.RUNNING);
 
-		} catch (ServiceStateMachineException e) {
+		} catch (ServiceStateMachineException | GatewayException | ServiceContextException e) {
 			if (logger.isErrorEnabled())
 				logger.error(e.getMessage(), e);
 

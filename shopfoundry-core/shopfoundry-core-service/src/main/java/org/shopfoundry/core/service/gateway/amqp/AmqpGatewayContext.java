@@ -2,6 +2,8 @@ package org.shopfoundry.core.service.gateway.amqp;
 
 import java.util.List;
 
+import org.shopfoundry.core.service.config.ConfigurationProvider;
+
 /**
  * AMQP gateway context.
  * 
@@ -43,5 +45,19 @@ public interface AmqpGatewayContext {
 	 * @return the list of routing keys
 	 */
 	public List<String> getRoutingKeys();
+
+	/**
+	 * Imports properties into the context.
+	 * 
+	 * @param properties
+	 * @throws Exception
+	 */
+	public void importProperties(ConfigurationProvider configurationProvider) throws Exception;
+	
+	/**
+	 * Amqp bus type
+	 * @return the Amqp bus type
+	 */
+	public AmqpBusType getAmqpBusType();
 
 }
