@@ -3,9 +3,9 @@ package org.shopfoundry.core.service.gateway.outbound.registry;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.security.KeyManagementException;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -32,8 +32,10 @@ import org.apache.http.impl.client.HttpClients;
 import org.shopfoundry.core.security.SecurityProvider;
 import org.shopfoundry.core.security.SecurityProviderException;
 import org.shopfoundry.core.security.certificates.CertificateManagerException;
+import org.shopfoundry.core.security.pki.rsa.RSAKeyPairGenerator;
 import org.shopfoundry.core.security.ssl.PermissiveTrustManager;
 import org.shopfoundry.core.service.config.ConfigurationProvider;
+import org.shopfoundry.core.service.gateway.outbound.OutboundGatewayException;
 import org.shopfoundry.core.service.info.ServiceInfoProvider;
 import org.shopfoundry.core.service.info.ServiceInfoProviderException;
 import org.shopfoundry.core.service.registry.dto.Request;
@@ -174,6 +176,33 @@ public class DefaultRegistryOutboundGateway implements RegistryOutboundGateway {
 			// Set configuration obtained from the registry service
 			this.configurationProvider.importConfiguration(response.getServiceConfiguration());
 
+			// Get certificate chain
+			CertificateFactory caCertFactory = CertificateFactory.getInstance("X.509");
+			InputStream caChainInputStream = new ByteArrayInputStream(
+					Base64.decodeBase64(response.getCertificateAuthorityChain()));
+
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(caChainInputStream, writer, "UTF-8");
+			String theString = writer.toString();
+
+			String[] certificates = theString.split("-----BEGIN CERTIFICATE-----");
+			for (int i = 1; i < certificates.length; i++) {
+				String pem = "-----BEGIN CERTIFICATE-----\n" + certificates[i];
+
+				X509Certificate caCertificate = (X509Certificate) caCertFactory
+						.generateCertificate(IOUtils.toInputStream(pem));
+
+				if (logger.isTraceEnabled())
+					logger.trace("CA chain certificate: {}", caCertificate.toString());
+
+				// Import end entity certificate to the key store
+				this.securityProvider.getCertificateManager().getTrustedCerticiates()
+						.setCertificateEntry(new Integer(
+								this.securityProvider.getCertificateManager().getTrustedCerticiates().size() + 1)
+										.toString(),
+								caCertificate);
+			}
+
 			// Get end-entity certificate
 			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
 			InputStream certificateInputStream = new ByteArrayInputStream(
@@ -183,12 +212,19 @@ public class DefaultRegistryOutboundGateway implements RegistryOutboundGateway {
 			Certificate[] certificate = { endEntityCertificate };
 
 			if (logger.isTraceEnabled())
-				logger.trace("End-Entity certificate: {}", certificate.toString());
+				logger.trace("End-Entity certificate: {}", endEntityCertificate.toString());
 
 			// Import end entity certificate to the key store
 			this.securityProvider.getCertificateManager().getEndEntityCertificates().setKeyEntry(
 					this.serviceInfoProvider.getServiceGuid(), keyPair.getPrivate(),
 					this.serviceInfoProvider.getServiceGuid().toCharArray(), certificate);
+
+			if (logger.isInfoEnabled()) {
+				logger.info("Trusted certificates: {}",
+						this.securityProvider.getCertificateManager().getTrustedCerticiates().size());
+				logger.info("End entity certificates: {}",
+						this.securityProvider.getCertificateManager().getEndEntityCertificates().size());
+			}
 
 		} catch (ServiceInfoProviderException | NoSuchAlgorithmException | KeyManagementException | IOException
 				| CertificateException | KeyStoreException | CertificateManagerException
@@ -219,12 +255,16 @@ public class DefaultRegistryOutboundGateway implements RegistryOutboundGateway {
 	 */
 	private KeyPair generateKeyPair() throws NoSuchAlgorithmException {
 		// Generating key pair
-		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-		KeyPair keyPair = keyPairGenerator.generateKeyPair();
+		KeyPair keyPair = RSAKeyPairGenerator.generateKey(RSAKeyPairGenerator.KEY_SIZE_2048);
 
 		if (logger.isInfoEnabled())
 			logger.info("Generated key pair. Public key: {}", keyPair.getPublic().toString());
 		return keyPair;
+	}
+
+	@Override
+	public void configure() throws OutboundGatewayException {
+		
 	}
 
 }

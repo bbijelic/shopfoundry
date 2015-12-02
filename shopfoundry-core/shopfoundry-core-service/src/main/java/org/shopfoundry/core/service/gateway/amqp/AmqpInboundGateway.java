@@ -1,6 +1,7 @@
 package org.shopfoundry.core.service.gateway.amqp;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -143,7 +144,8 @@ public class AmqpInboundGateway implements InboundGateway {
 			sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
 			// Provide ssl contect to the connection factory
-			connectionFactory.useSslProtocol(sslContext);
+			//connectionFactory.useSslProtocol(sslContext);
+			connectionFactory.useSslProtocol();
 		}
 
 		// Create connection
@@ -268,7 +270,7 @@ public class AmqpInboundGateway implements InboundGateway {
 			try {
 				// Close channel
 				channel.close();
-			} catch (IOException e) {
+			} catch (IOException | TimeoutException e) {
 				if (logger.isErrorEnabled())
 					logger.error("Failed to close AMQP channel: {}", e.getMessage());
 			}

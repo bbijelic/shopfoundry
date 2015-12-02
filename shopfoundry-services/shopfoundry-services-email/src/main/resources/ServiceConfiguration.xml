@@ -50,13 +50,28 @@
 		</constructor-arg>
 	</bean>
 
+	<!-- Smtp configuration -->
+	<bean id="SmtpConfiguration"
+		class="org.shopfoundry.core.service.gateway.outbound.smtp.DefaultSmtpConfiguration" />
+
+	<!-- Smtp Outbound gateway -->
+	<bean id="SmtpOutboundGateway"
+		class="org.shopfoundry.core.service.gateway.outbound.smtp.DefaultSmtpOutboundGateway">
+		<!-- Smtp configuration implementation -->
+		<constructor-arg ref="SmtpConfiguration" />
+		<!-- Configuration provider -->
+		<constructor-arg ref="ConfigurationProvider" />
+	</bean>
+
 	<!-- Amqp Connection Properties -->
 	<bean id="AmqpConnectionProperties"
 		class="org.shopfoundry.core.service.gateway.amqp.DefaultAmqpConnectionProperties" />
 
 	<!-- Service bus message handler -->
 	<bean id="ServiceBusMessageHandler"
-		class="org.shopfoundry.services.email.handler.EmailServiceMessageHandler" />
+		class="org.shopfoundry.services.email.handler.EmailServiceMessageHandler">
+		<constructor-arg ref="SmtpOutboundGateway" />
+	</bean>
 
 	<!-- Amqp service bus message consumer -->
 	<bean id="AmqpServiceBusMessageConsumer"
@@ -133,6 +148,8 @@
 				value-type="org.shopfoundry.core.service.gateway.outbound.OutboundGateway">
 				<!-- Registry service outbound gateway -->
 				<entry key="RegistryService" value-ref="RegistryServiceOutboundGateway" />
+				<!-- SMTP outbound gateway -->
+				<entry key="Smtp" value-ref="SmtpOutboundGateway" />
 			</map>
 		</constructor-arg>
 		<!-- Inbound gateways -->

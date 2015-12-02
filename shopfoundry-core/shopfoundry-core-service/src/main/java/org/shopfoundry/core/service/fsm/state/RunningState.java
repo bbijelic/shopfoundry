@@ -4,6 +4,7 @@ import org.shopfoundry.core.service.context.ServiceContext;
 import org.shopfoundry.core.service.fsm.ServiceStateMachine;
 import org.shopfoundry.core.service.fsm.ServiceStateMachineException;
 import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
+import org.shopfoundry.core.service.gateway.outbound.OutboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,15 +26,32 @@ public class RunningState implements ServiceState {
 
 		try {
 
-			if (!serviceContext.getGatewayProvider().getInboundGateways().isEmpty()) {
-				for (InboundGateway inboundGateway : serviceContext.getGatewayProvider().getInboundGateways()
-						.values()) {
-					if (logger.isInfoEnabled())
-						logger.info("Starting inbound gateay: {}", inboundGateway.getClass().getCanonicalName());
+			if (serviceContext.getGatewayProvider() != null) {
 
-					// Configure
-					inboundGateway.start();
+				// Start all inbound gateways
+				if (!serviceContext.getGatewayProvider().getInboundGateways().isEmpty()) {
+					for (InboundGateway inboundGateway : serviceContext.getGatewayProvider().getInboundGateways()
+							.values()) {
+						if (logger.isInfoEnabled())
+							logger.info("Starting inbound gateway: {}", inboundGateway.getClass().getCanonicalName());
+
+						// Configure
+						inboundGateway.start();
+					}
 				}
+
+				// Start all outbound gateways
+				if (!serviceContext.getGatewayProvider().getOutboundGateways().isEmpty()) {
+					for (OutboundGateway outboundGateway : serviceContext.getGatewayProvider().getOutboundGateways()
+							.values()) {
+						if (logger.isInfoEnabled())
+							logger.info("Starting outbound gateway: {}", outboundGateway.getClass().getCanonicalName());
+
+						// Configure
+						outboundGateway.start();
+					}
+				}
+
 			}
 
 		} catch (Exception e) {

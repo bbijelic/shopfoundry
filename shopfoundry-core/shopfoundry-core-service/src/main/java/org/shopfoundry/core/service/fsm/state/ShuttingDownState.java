@@ -3,6 +3,7 @@ package org.shopfoundry.core.service.fsm.state;
 import org.shopfoundry.core.service.context.ServiceContext;
 import org.shopfoundry.core.service.fsm.ServiceStateMachine;
 import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
+import org.shopfoundry.core.service.gateway.outbound.OutboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,15 +25,32 @@ public class ShuttingDownState implements ServiceState {
 
 		try {
 
-			if (!serviceContext.getGatewayProvider().getInboundGateways().isEmpty()) {
-				for (InboundGateway inboundGateway : serviceContext.getGatewayProvider().getInboundGateways()
-						.values()) {
-					if (logger.isInfoEnabled())
-						logger.info("Stopping inbound gateay: {}", inboundGateway.getClass().getCanonicalName());
+			if (serviceContext.getGatewayProvider() != null) {
 
-					// Configure
-					inboundGateway.stop();
+				// Stop all inbound gateways
+				if (!serviceContext.getGatewayProvider().getInboundGateways().isEmpty()) {
+					for (InboundGateway inboundGateway : serviceContext.getGatewayProvider().getInboundGateways()
+							.values()) {
+						if (logger.isInfoEnabled())
+							logger.info("Stopping inbound gateway: {}", inboundGateway.getClass().getCanonicalName());
+
+						// Configure
+						inboundGateway.stop();
+					}
 				}
+
+				// Stop all outbound gateways
+				if (!serviceContext.getGatewayProvider().getOutboundGateways().isEmpty()) {
+					for (OutboundGateway outboundGateway : serviceContext.getGatewayProvider().getOutboundGateways()
+							.values()) {
+						if (logger.isInfoEnabled())
+							logger.info("Stopping outbound gateway: {}", outboundGateway.getClass().getCanonicalName());
+
+						// Configure
+						outboundGateway.stop();
+					}
+				}
+
 			}
 
 		} catch (Exception e) {

@@ -9,7 +9,7 @@ SET @last_insert_id = LAST_INSERT_ID();
 -- Configuration parameters
 
 -- ------------------------
--- CONNECTION RELATED
+-- AMQP CONNECTION RELATED
 -- ------------------------
 
 -- Broker hostmame
@@ -48,7 +48,7 @@ INSERT INTO service_group_configuration_key_pairs
 VALUES (@last_insert_id, "broker.ssl.version", "TLSv1.2", false);
 
 -- ------------------------
--- BUS RELATED
+-- AMQP BUS RELATED
 -- ------------------------
 
 -- Service bus
@@ -92,4 +92,28 @@ VALUES (@last_insert_id, "bus.event.routing.service.group", "service.email", tru
 INSERT INTO service_group_configuration_key_pairs 
 	(configuration, config_key, config_value, public) 
 VALUES (@last_insert_id, "bus.event.routing.service.instance", "service.email.{uuid}", true);
+
+-- ------------------------
+-- SMTP RELATED
+-- ------------------------
+
+-- SMTP server hostname
+INSERT INTO service_group_configuration_key_pairs 
+	(configuration, config_key, config_value, public) 
+VALUES (@last_insert_id, "smtp.server.hostname", "localhost", false);
+
+-- SMTP server port
+INSERT INTO service_group_configuration_key_pairs 
+	(configuration, config_key, config_value, public) 
+VALUES (@last_insert_id, "smtp.server.port", "2525", false);
+
+-- SMTP server username
+INSERT INTO service_group_configuration_key_pairs 
+	(configuration, config_key, config_value, public) 
+VALUES (@last_insert_id, "smtp.server.username", "smtp", false);
+
+-- SMTP server password
+INSERT INTO service_group_configuration_key_pairs 
+	(configuration, config_key, config_value, public) 
+VALUES (@last_insert_id, "smtp.server.password", "smtp", false);
 

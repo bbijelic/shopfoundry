@@ -6,6 +6,7 @@ import org.shopfoundry.core.service.fsm.ServiceStateMachine;
 import org.shopfoundry.core.service.fsm.ServiceStateMachineException;
 import org.shopfoundry.core.service.gateway.GatewayException;
 import org.shopfoundry.core.service.gateway.inbound.InboundGateway;
+import org.shopfoundry.core.service.gateway.outbound.OutboundGateway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,16 +27,32 @@ public class ConfiguringState implements ServiceState {
 			logger.info("Handling state {}", getState());
 
 		try {
+			
+			if(serviceContext.getGatewayProvider() != null){
 
-			if (!serviceContext.getGatewayProvider().getInboundGateways().isEmpty()) {
-				for (InboundGateway inboundGateway : serviceContext.getGatewayProvider().getInboundGateways()
-						.values()) {
-					if (logger.isInfoEnabled())
-						logger.info("Configuring inbound gateay: {}", inboundGateway.getClass().getCanonicalName());
-					
-					// Configure
-					inboundGateway.configure();
+				// Configure all inbound gateways
+				if (!serviceContext.getGatewayProvider().getInboundGateways().isEmpty()) {
+					for (InboundGateway inboundGateway : serviceContext.getGatewayProvider().getInboundGateways()
+							.values()) {
+						if (logger.isInfoEnabled())
+							logger.info("Configuring inbound gateway: {}", inboundGateway.getClass().getCanonicalName());
+						
+						// Configure
+						inboundGateway.configure();
+					}
 				}
+				
+				// Configure all outbound gateways
+				if(!serviceContext.getGatewayProvider().getOutboundGateways().isEmpty()){
+					for(OutboundGateway outboundGateway : serviceContext.getGatewayProvider().getOutboundGateways().values()){
+						if (logger.isInfoEnabled())
+							logger.info("Configuring outbound gateway: {}", outboundGateway.getClass().getCanonicalName());
+						
+						// Configure
+						outboundGateway.configure();
+					}
+				}
+				
 			}
 
 			// Change state to running

@@ -27,6 +27,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.shopfoundry.core.security.SecurityProvider;
+import org.shopfoundry.core.service.gateway.outbound.OutboundGatewayException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -236,6 +237,12 @@ public class DefaultCaServiceOutboundGateway implements
 	public void requestCertificateRevocation(X509Certificate certificate) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void configure() throws OutboundGatewayException {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
