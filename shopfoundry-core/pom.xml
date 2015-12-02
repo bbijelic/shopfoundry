@@ -13,10 +13,10 @@
 	<description>Online marketplace platform core package</description>
 
 	<modules>
-		<module>shopfoundry-core-admin</module>
+		
 		<module>shopfoundry-core-db</module>
 		<module>shopfoundry-core-service</module>
-		<module>shopfoundry-core-utils</module>
+		
 		<module>shopfoundry-core-security</module>
 	</modules>
 </project>
